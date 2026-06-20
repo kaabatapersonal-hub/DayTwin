@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { CATEGORY_CONFIG, ALL_CATEGORIES } from '@/lib/categories'
 import { htmlTimeToPg, pgTimeToHtml } from '@/lib/format'
-import type { Task, TaskCategory, TaskPriority } from '@/types'
+import { createClient } from '@/lib/supabase/client'
+import { fetchProjects } from '@/lib/projects'
+import type { Task, TaskCategory, TaskPriority, Project } from '@/types'
 
 export type FormMode = 'add-time-block' | 'add-quick' | 'edit'
 
@@ -16,7 +18,7 @@ export interface TaskFormData {
   category:   TaskCategory
   priority:   TaskPriority
   completed:  boolean
-  project_id: null  // not wired in Session 2
+  project_id: string | null
 }
 
 interface TaskFormProps {
@@ -54,9 +56,19 @@ export function TaskForm({
   const [endTime,   setEndTime]   = useState(pgTimeToHtml(initialTask?.end_time   ?? null))
   const [category,  setCategory]  = useState<TaskCategory>(initialTask?.category ?? 'deep_work')
   const [priority,  setPriority]  = useState<TaskPriority>(initialTask?.priority  ?? 'medium')
+  const [projectId,  setProjectId]  = useState<string | null>(initialTask?.project_id ?? null)
+  const [projects,   setProjects]   = useState<Project[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [deleting,   setDeleting]   = useState(false)
   const [formError,  setFormError]  = useState<string | null>(null)
+
+  // Fetch active projects once so the selector is populated
+  useEffect(() => {
+    const supabase = createClient()
+    fetchProjects(supabase, 'active')
+      .then(setProjects)
+      .catch(() => { /* degrade silently — project selector stays empty */ })
+  }, [])
 
   const heading =
     isEdit               ? 'Edit task'    :
@@ -79,7 +91,7 @@ export function TaskForm({
         category,
         priority,
         completed:  initialTask?.completed ?? false,
-        project_id: null,
+        project_id: projectId,
       })
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Something went wrong')
@@ -168,6 +180,23 @@ export function TaskForm({
                   className="w-full bg-white/10 text-white rounded-2xl px-4 py-3 text-sm font-body focus:outline-none focus:ring-1 focus:ring-teal/40"
                 />
               </div>
+            </div>
+          )}
+
+          {/* Project link (only shown when active projects exist) */}
+          {projects.length > 0 && (
+            <div>
+              <label className="block text-xs text-white/40 font-body mb-1.5">Project (optional)</label>
+              <select
+                value={projectId ?? ''}
+                onChange={e => setProjectId(e.target.value || null)}
+                className="w-full bg-white/10 text-white rounded-2xl px-4 py-3 text-sm font-body focus:outline-none focus:ring-1 focus:ring-teal/40 appearance-none"
+              >
+                <option value="">No project</option>
+                {projects.map(p => (
+                  <option key={p.id} value={p.id}>{p.title}</option>
+                ))}
+              </select>
             </div>
           )}
 

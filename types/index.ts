@@ -108,3 +108,60 @@ export interface TodayHabit {
   log:    HabitLog | null
   streak: HabitStreak
 }
+
+// ── Goals & projects ──────────────────────────────────────────────────────────
+
+export type GoalStatus    = 'active' | 'completed' | 'archived'
+export type ProjectStatus = 'active' | 'completed' | 'archived'
+
+/**
+ * Matches the `goals` table.
+ * Goals are always private — never visible to friends, no setting changes this.
+ * See privacy-and-friend-safety.md.
+ */
+export interface Goal {
+  id:           string
+  user_id:      string
+  title:        string
+  why_text:     string | null
+  deadline:     string | null   // "YYYY-MM-DD"
+  progress_pct: number          // 0–100; manually set by the user — no auto-rollup
+  status:       GoalStatus
+  created_at:   string
+}
+
+export interface NewGoal {
+  title:        string
+  why_text:     string | null
+  deadline:     string | null
+  status:       GoalStatus
+}
+
+/** Matches the `projects` table. */
+export interface Project {
+  id:         string
+  user_id:    string
+  goal_id:    string | null
+  title:      string
+  status:     ProjectStatus
+  created_at: string
+}
+
+export interface NewProject {
+  title:   string
+  goal_id: string | null
+  status:  ProjectStatus
+}
+
+/** Goal bundled with its active projects — used in goal detail view. */
+export interface GoalWithProjects {
+  goal:     Goal
+  projects: Project[]
+}
+
+/** Project bundled with its linked tasks — used in project detail view. */
+export interface ProjectWithTasks {
+  project: Project
+  tasks:   Task[]
+  goal:    Goal | null
+}
