@@ -11,7 +11,7 @@ interface TopBarProps {
  */
 export function TopBar({ date }: TopBarProps) {
   return (
-    <header className="flex items-center justify-between px-5 pt-8 pb-4">
+    <header className="flex items-center justify-between px-5 pt-safe-top pb-4">
       <div>
         <h1 className="font-heading text-xl font-bold text-white tracking-tight">
           Day<span className="text-teal">Twin</span>

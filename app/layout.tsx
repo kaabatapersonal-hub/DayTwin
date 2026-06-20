@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
 import { Inter, Fraunces } from 'next/font/google'
 import './globals.css'
@@ -30,6 +30,12 @@ const fraunces = Fraunces({
 export const metadata: Metadata = {
   title: 'DayTwin',
   description: 'Your personal operating system',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({
