@@ -33,7 +33,7 @@ export function IntentionCard({ intention, showPrompt, onSave, onDismiss }: Inte
         animate={{ opacity: 1, y: 0 }}
         className="mb-4 p-4 rounded-2xl border border-teal/20 bg-teal/5"
       >
-        <p className="text-xs text-teal/60 font-body mb-1">Today's focus</p>
+        <p className="text-xs text-teal/60 font-body mb-1">Today&apos;s focus</p>
         <p className="text-white text-sm font-body">{intention.text}</p>
       </motion.div>
     )
@@ -59,7 +59,7 @@ export function IntentionCard({ intention, showPrompt, onSave, onDismiss }: Inte
     >
       <div className="flex items-start justify-between mb-3">
         <p className="text-sm text-white/70 font-body leading-snug">
-          What's the one thing that would make today count?
+          What&apos;s the one thing that would make today count?
         </p>
         <button
           onClick={onDismiss}

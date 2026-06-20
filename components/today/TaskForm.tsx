@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { CATEGORY_CONFIG, ALL_CATEGORIES } from '@/lib/categories'
 import { htmlTimeToPg, pgTimeToHtml } from '@/lib/format'
-import type { Task, TaskCategory, TaskPriority, NewTask } from '@/types'
+import type { Task, TaskCategory, TaskPriority } from '@/types'
 
 export type FormMode = 'add-time-block' | 'add-quick' | 'edit'
 
