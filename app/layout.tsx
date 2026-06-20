@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import { Inter, Fraunces } from 'next/font/google'
 import './globals.css'
-import { Providers } from './providers'
+import { Providers }  from './providers'
+import { BottomNav }  from '@/components/nav/BottomNav'
 
 const geist = localFont({
   src: './fonts/GeistVF.woff',
@@ -41,6 +42,7 @@ export default function RootLayout({
     >
       <body className="bg-background text-white font-body antialiased">
         <Providers>{children}</Providers>
+        <BottomNav />
       </body>
     </html>
   )

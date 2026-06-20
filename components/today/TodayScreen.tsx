@@ -8,9 +8,11 @@ import { TimelineView }  from './TimelineView'
 import { QuickTaskList } from './QuickTaskList'
 import { EmptyState }    from './EmptyState'
 import { TaskForm, type FormMode, type TaskFormData } from './TaskForm'
-import { useTasks }     from '@/hooks/useTasks'
-import { useIntention } from '@/hooks/useIntention'
-import type { Task, Intention } from '@/types'
+import { TodayHabits }   from '@/components/habits/TodayHabits'
+import { useTasks }      from '@/hooks/useTasks'
+import { useIntention }  from '@/hooks/useIntention'
+import { useTodayHabits } from '@/hooks/useTodayHabits'
+import type { Task, Intention, TodayHabit } from '@/types'
 
 interface FormState {
   mode: FormMode
@@ -18,21 +20,22 @@ interface FormState {
 }
 
 interface TodayScreenProps {
-  initialTasks:     Task[]
-  initialIntention: Intention | null
-  date:             string  // ISO "YYYY-MM-DD"
+  initialTasks:       Task[]
+  initialIntention:   Intention | null
+  initialTodayHabits: TodayHabit[]
+  date:               string  // ISO "YYYY-MM-DD"
 }
 
 /**
  * Root client component for the Today screen.
  *
- * Owns all mutable state and wires up the task and intention hooks.
+ * Owns all mutable state and wires up the task, intention, and habit hooks.
  * The TaskForm sheet is rendered at this level so it overlays the full screen.
  * Sub-components receive only the data and callbacks they need — no prop drilling
  * of the whole task list.
  */
 export function TodayScreen({
-  initialTasks, initialIntention, date,
+  initialTasks, initialIntention, initialTodayHabits, date,
 }: TodayScreenProps) {
   const {
     timeBlocked, quick,
@@ -46,10 +49,17 @@ export function TodayScreen({
     error: intentionError,
   } = useIntention(initialIntention, date)
 
+  const {
+    habits: todayHabits,
+    toggleBoolean, incrementCount, startTimer, stopTimer,
+    error: habitError,
+  } = useTodayHabits(initialTodayHabits)
+
   const [formState, setFormState] = useState<FormState | null>(null)
 
   const hasAnyTasks   = timeBlocked.length > 0 || quick.length > 0
-  const displayError  = taskError ?? intentionError
+  const hasAnything   = hasAnyTasks || todayHabits.length > 0
+  const displayError  = taskError ?? intentionError ?? habitError
 
   function openAdd(mode: 'add-time-block' | 'add-quick') {
     setFormState({ mode })
@@ -79,7 +89,7 @@ export function TodayScreen({
     <div className="min-h-screen bg-background flex flex-col">
       <TopBar date={date} />
 
-      <div className="flex-1 flex flex-col px-4 pb-12">
+      <div className="flex-1 flex flex-col px-4 pb-24">
         {/* Morning intention — always sits at the top of the content area */}
         <AnimatePresence>
           {(showPrompt || intention) && (
@@ -99,25 +109,39 @@ export function TodayScreen({
           </div>
         )}
 
-        {!hasAnyTasks ? (
+        {!hasAnything ? (
           <EmptyState
             onAddTimeBlock={() => openAdd('add-time-block')}
             onAddQuick={() => openAdd('add-quick')}
           />
         ) : (
           <div className="space-y-7 mt-2">
-            <TimelineView
-              tasks={timeBlocked}
-              onToggleComplete={toggleComplete}
-              onEdit={openEdit}
-              onAdd={() => openAdd('add-time-block')}
-            />
-            <QuickTaskList
-              tasks={quick}
-              onToggleComplete={toggleComplete}
-              onEdit={openEdit}
-              onAdd={() => openAdd('add-quick')}
-            />
+            {hasAnyTasks && (
+              <>
+                <TimelineView
+                  tasks={timeBlocked}
+                  onToggleComplete={toggleComplete}
+                  onEdit={openEdit}
+                  onAdd={() => openAdd('add-time-block')}
+                />
+                <QuickTaskList
+                  tasks={quick}
+                  onToggleComplete={toggleComplete}
+                  onEdit={openEdit}
+                  onAdd={() => openAdd('add-quick')}
+                />
+              </>
+            )}
+
+            {todayHabits.length > 0 && (
+              <TodayHabits
+                habits={todayHabits}
+                onToggleBoolean={toggleBoolean}
+                onIncrementCount={incrementCount}
+                onStartTimer={startTimer}
+                onStopTimer={stopTimer}
+              />
+            )}
           </div>
         )}
       </div>

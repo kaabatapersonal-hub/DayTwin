@@ -44,3 +44,67 @@ export interface Intention {
   date:     string   // Postgres date → "YYYY-MM-DD"
   text:     string
 }
+
+// ── Habits ────────────────────────────────────────────────────────────────────
+
+export type DayOfWeek    = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
+export type HabitType    = 'boolean' | 'count' | 'timer'
+
+/**
+ * JSONB frequency field.
+ * 'daily' → every day.
+ * { days: [...] } → only on the listed weekdays.
+ * Supabase returns JSONB already parsed, so this is the in-memory shape.
+ */
+export type HabitFrequency = 'daily' | { days: DayOfWeek[] }
+
+/** Matches the `habits` table. target_value unit: reps for count; seconds for timer. */
+export interface Habit {
+  id:           string
+  user_id:      string
+  name:         string
+  type:         HabitType
+  target_value: number | null
+  frequency:    HabitFrequency
+  archived:     boolean
+  created_at:   string
+}
+
+export interface NewHabit {
+  name:         string
+  type:         HabitType
+  target_value: number | null
+  frequency:    HabitFrequency
+}
+
+/** Matches the `habit_logs` table. value unit mirrors target_value (reps or seconds). */
+export interface HabitLog {
+  id:        string
+  habit_id:  string
+  user_id:   string
+  date:      string         // "YYYY-MM-DD"
+  value:     number | null
+  completed: boolean
+}
+
+/** Matches the `habit_streaks` table. */
+export interface HabitStreak {
+  habit_id:                 string
+  current_streak:           number
+  consistency_30d_pct:      number   // 0–100
+  grace_day_used_this_week: boolean
+  last_grace_reset:         string | null  // "YYYY-MM-DD"
+}
+
+/** Habit + its streak — used in the Habits tab list. */
+export interface HabitWithStreak {
+  habit:  Habit
+  streak: HabitStreak
+}
+
+/** Habit + today's log + streak — used in the Today screen's habits section. */
+export interface TodayHabit {
+  habit:  Habit
+  log:    HabitLog | null
+  streak: HabitStreak
+}
