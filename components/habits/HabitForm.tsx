@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import type { Habit, HabitType, HabitFrequency, DayOfWeek, NewHabit } from '@/types'
 
-export interface HabitFormData extends NewHabit {}
+export type HabitFormData = NewHabit
 
 type FreqMode = 'daily' | 'custom'
 
