@@ -10,3 +10,12 @@ body {
   background: var(--background);
   color: #ffffff;
 }
+
+/* Safe-area padding for iOS home indicator / notch */
+.pb-safe-bottom {
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
+
+.pt-safe-top {
+  padding-top: max(1rem, env(safe-area-inset-top));
+}
