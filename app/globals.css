@@ -19,3 +19,16 @@ body {
 .pt-safe-top {
   padding-top: max(2rem, env(safe-area-inset-top));
 }
+
+/* Prevent iOS Safari from zooming on input focus.
+   Safari auto-zooms when font-size < 16px; this overrides Tailwind's text-sm (14px). */
+input,
+textarea,
+select {
+  font-size: 16px;
+}
+
+/* Remove the 300ms tap delay and double-tap zoom on interactive elements. */
+button, a, input, textarea, select {
+  touch-action: manipulation;
+}
