@@ -74,3 +74,29 @@ export function getWeekStart(isoDate: string): string {
   d.setDate(d.getDate() + diff)
   return d.toISOString().slice(0, 10)
 }
+
+/**
+ * Returns a Growth Level (1–10) from a user's lifetime sparks total.
+ * Levels are intentionally front-loaded so early users feel progress quickly
+ * and the upper levels are a genuine long-term aspiration.
+ */
+export function growthLevel(sparksLifetime: number): number {
+  if (sparksLifetime >= 100000) return 10
+  if (sparksLifetime >= 50000)  return 9
+  if (sparksLifetime >= 20000)  return 8
+  if (sparksLifetime >= 10000)  return 7
+  if (sparksLifetime >= 5000)   return 6
+  if (sparksLifetime >= 2500)   return 5
+  if (sparksLifetime >= 1000)   return 4
+  if (sparksLifetime >= 500)    return 3
+  if (sparksLifetime >= 100)    return 2
+  return 1
+}
+
+/**
+ * Returns a short weekday label ("Mon", "Tue" …) for an ISO date string.
+ * Used in the 7-day score bar chart on friend profiles.
+ */
+export function shortWeekday(isoDate: string): string {
+  return new Date(`${isoDate}T00:00:00`).toLocaleDateString('en-US', { weekday: 'short' })
+}

@@ -311,3 +311,84 @@ export interface TimeCategorySummary {
   category:      TrackingCategory
   total_seconds: number
 }
+
+// ── Friends ───────────────────────────────────────────────────────────────────
+
+export type FriendshipStatus = 'pending' | 'accepted' | 'blocked'
+
+/** Matches the `friendships` table. */
+export interface Friendship {
+  id:           string
+  requester_id: string
+  addressee_id: string
+  status:       FriendshipStatus
+  created_at:   string
+}
+
+/**
+ * Pre-joined view used to render a friend list item.
+ * Only friend-visible fields are included — no breakdown, no habit names.
+ * consistency_30d_pct is loaded lazily (via RPC) in the profile overlay.
+ */
+export interface FriendView {
+  friendship_id:       string
+  user_id:             string
+  display_name:        string | null
+  username:            string | null
+  avatar_url:          string | null
+  sparks_lifetime:     number
+  today_score_pct:     number | null   // null if friend has no score logged today
+  consistency_30d_pct: number | null   // null until fetched from profile overlay
+}
+
+/**
+ * A pending friend request — either incoming (we are the addressee)
+ * or outgoing (we are the requester).
+ */
+export interface FriendRequest {
+  friendship_id: string
+  requester_id:  string
+  addressee_id:  string
+  display_name:  string | null
+  username:      string | null
+  avatar_url:    string | null
+  direction:     'incoming' | 'outgoing'
+  created_at:    string
+}
+
+/**
+ * Result from username search before any friendship exists.
+ * Only the discoverable public fields are returned — nothing else leaks pre-friendship.
+ */
+export interface FriendSearchResult {
+  user_id:      string
+  display_name: string | null
+  username:     string
+  avatar_url:   string | null
+}
+
+/** One day's score entry in the 7-day friend profile chart. */
+export interface FriendScoreDay {
+  date:      string   // "YYYY-MM-DD"
+  score_pct: number
+}
+
+/**
+ * Full profile data for the friend profile overlay.
+ * Extends FriendView with the 7-day score history (from get_friend_scores RPC)
+ * and the consistency figure (from get_friend_consistency RPC).
+ */
+export interface FriendProfileData extends FriendView {
+  score_history:       FriendScoreDay[]
+  consistency_30d_pct: number
+}
+
+/** Matches the `invite_tokens` table. */
+export interface InviteToken {
+  id:         string
+  user_id:    string
+  created_at: string
+  expires_at: string
+  claimed_at: string | null
+  claimed_by: string | null
+}
