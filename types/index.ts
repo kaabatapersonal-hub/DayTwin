@@ -252,3 +252,62 @@ export interface CoachData {
   goalProgressPct: number | null   // its current progress_pct (manual)
   topTaskTitle:    string | null   // highest-priority incomplete task for today
 }
+
+// ── Time tracking ─────────────────────────────────────────────────────────────
+
+/**
+ * Text categories for time_entries.category (stored as text, not enum).
+ * Social media is listed without any special treatment — same visual weight as coding.
+ * See privacy-and-friend-safety.md: time entries are always private, no friend sees them.
+ */
+export type TrackingCategory =
+  | 'coding'
+  | 'studying'
+  | 'gym'
+  | 'admin'
+  | 'social_media'
+  | 'personal'
+
+/** Matches the time_entries table in database-schema.md */
+export interface TimeEntry {
+  id:               string
+  user_id:          string
+  task_id:          string | null
+  category:         TrackingCategory
+  start_at:         string          // ISO timestamp; set by DB default
+  end_at:           string | null   // null while timer is running
+  duration_seconds: number | null   // null while running; set server-side on stop
+}
+
+export interface NewTimeEntry {
+  category: TrackingCategory
+  task_id:  string | null
+}
+
+// ── Focus sessions ────────────────────────────────────────────────────────────
+
+/** 'active' requires migration 20260622000003 to be applied first. */
+export type FocusSessionStatus = 'active' | 'completed' | 'cancelled'
+
+/** Matches the focus_sessions table in database-schema.md */
+export interface FocusSession {
+  id:                       string
+  user_id:                  string
+  task_id:                  string | null
+  planned_duration_seconds: number
+  actual_duration_seconds:  number | null
+  status:                   FocusSessionStatus
+  started_at:               string          // ISO timestamp; set by DB default
+  ended_at:                 string | null
+}
+
+export interface NewFocusSession {
+  planned_duration_seconds: number
+  task_id:                  string | null
+}
+
+/** Aggregated weekly totals per tracking category — used by WeeklyTimeSummary */
+export interface TimeCategorySummary {
+  category:      TrackingCategory
+  total_seconds: number
+}

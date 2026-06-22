@@ -32,3 +32,10 @@ select {
 button, a, input, textarea, select {
   touch-action: manipulation;
 }
+
+/* Extra top padding for elements using pt-safe-top when the tracking bar is visible.
+   The tracking bar is 36px (h-9) of content. The data attribute is set by TrackingContext
+   so all pt-safe-top headers shift down automatically without prop changes. */
+html[data-tracking-active="true"] .pt-safe-top {
+  padding-top: calc(max(2rem, env(safe-area-inset-top)) + 36px);
+}

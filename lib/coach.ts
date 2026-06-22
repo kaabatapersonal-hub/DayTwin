@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { CoachData, Task } from '@/types'
+import { getWeekStart } from '@/lib/format'
 
 /**
  * Compute the morning coach card data from real Supabase data.
@@ -60,11 +61,3 @@ export async function fetchCoachData(
   }
 }
 
-/** Returns the ISO date of the Monday that starts the current calendar week. */
-function getWeekStart(isoDate: string): string {
-  const d = new Date(`${isoDate}T00:00:00`)
-  const day = d.getDay()                         // 0=Sun, 1=Mon, …
-  const diff = day === 0 ? -6 : 1 - day          // shift to Monday
-  d.setDate(d.getDate() + diff)
-  return d.toISOString().slice(0, 10)
-}

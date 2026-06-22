@@ -61,3 +61,16 @@ export function formatDateDisplay(isoDate: string): string {
     day:     'numeric',
   })
 }
+
+/**
+ * Returns the ISO date string of the Monday that starts the calendar week
+ * containing the given date. Used consistently by lib/coach.ts and
+ * lib/time-entries.ts so both sides of the focus-hours calculation agree.
+ */
+export function getWeekStart(isoDate: string): string {
+  const d   = new Date(`${isoDate}T00:00:00`)
+  const day = d.getDay()                    // 0 = Sun, 1 = Mon, …
+  const diff = day === 0 ? -6 : 1 - day    // shift back to Monday
+  d.setDate(d.getDate() + diff)
+  return d.toISOString().slice(0, 10)
+}

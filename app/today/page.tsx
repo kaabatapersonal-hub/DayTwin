@@ -1,15 +1,16 @@
-import { redirect }              from 'next/navigation'
-import { createClient }          from '@/lib/supabase/server'
-import { fetchTodayTasks }       from '@/lib/tasks'
-import { fetchTodayIntention }   from '@/lib/intentions'
-import { fetchTodayHabits }      from '@/lib/habits'
+import { redirect }               from 'next/navigation'
+import { createClient }           from '@/lib/supabase/server'
+import { fetchTodayTasks }        from '@/lib/tasks'
+import { fetchTodayIntention }    from '@/lib/intentions'
+import { fetchTodayHabits }       from '@/lib/habits'
 import { fetchUserProfile, isWelcomeBackDue, daysSinceLastActive } from '@/lib/users'
-import { fetchTodayScore }       from '@/lib/scores'
-import { fetchTodayReflection }  from '@/lib/reflections'
-import { fetchTodayMoods }       from '@/lib/mood'
-import { fetchCoachData }        from '@/lib/coach'
-import { TodayScreen }           from '@/components/today/TodayScreen'
-import { todayISO }              from '@/lib/format'
+import { fetchTodayScore }        from '@/lib/scores'
+import { fetchTodayReflection }   from '@/lib/reflections'
+import { fetchTodayMoods }        from '@/lib/mood'
+import { fetchCoachData }         from '@/lib/coach'
+import { fetchActiveFocusSession } from '@/lib/focus-sessions'
+import { TodayScreen }            from '@/components/today/TodayScreen'
+import { todayISO }               from '@/lib/format'
 
 export default async function TodayPage() {
   const date     = todayISO()
@@ -29,44 +30,37 @@ export default async function TodayPage() {
         initialTodayMoods={[]}
         coachData={{ preferredName: null, focusHoursWeek: 0, goalTitle: null, goalProgressPct: null, topTaskTitle: null }}
         activeGoalId={null}
+        initialActiveFocusSession={null}
       />
     )
   }
 
-  // Fetch profile first — needed for welcome back check + coach name
+  // Profile first — needed for Welcome Back check + coach name
   const profile = await fetchUserProfile(supabase).catch(() => null)
 
-  // Redirect to welcome-back if the user has been away 3+ days
   if (profile && isWelcomeBackDue(profile.last_active_at)) {
     const days = daysSinceLastActive(profile.last_active_at!)
     redirect(`/welcome-back?days=${days}`)
   }
 
-  // Fetch all remaining data in parallel once we know we're rendering Today
-  const [tasks, intention, todayHabits, todayScore, reflection, todayMoods] = await Promise.all([
-    fetchTodayTasks(supabase, date),
-    fetchTodayIntention(supabase, date),
-    fetchTodayHabits(supabase, date),
-    fetchTodayScore(supabase, date),
-    fetchTodayReflection(supabase, date),
-    fetchTodayMoods(supabase, date),
-  ])
+  const [tasks, intention, todayHabits, todayScore, reflection, todayMoods, activeFocusSession] =
+    await Promise.all([
+      fetchTodayTasks(supabase, date),
+      fetchTodayIntention(supabase, date),
+      fetchTodayHabits(supabase, date),
+      fetchTodayScore(supabase, date),
+      fetchTodayReflection(supabase, date),
+      fetchTodayMoods(supabase, date),
+      fetchActiveFocusSession(supabase),  // restore focus session if app was reopened mid-session
+    ])
 
-  // Coach data reuses today's tasks (already fetched) to avoid a re-query
   const coachData = await fetchCoachData(
-    supabase,
-    date,
-    profile?.preferred_name ?? null,
-    tasks,
+    supabase, date, profile?.preferred_name ?? null, tasks,
   ).catch(() => ({
-    preferredName: null,
-    focusHoursWeek: 0,
-    goalTitle: null,
-    goalProgressPct: null,
-    topTaskTitle: null,
+    preferredName: null, focusHoursWeek: 0,
+    goalTitle: null, goalProgressPct: null, topTaskTitle: null,
   }))
 
-  // Most recently created active goal for the Hard Day overlay
   const { data: activeGoalRow } = await supabase
     .from('goals')
     .select('id')
@@ -86,6 +80,7 @@ export default async function TodayPage() {
       initialTodayMoods={todayMoods}
       coachData={coachData}
       activeGoalId={activeGoalRow?.id ?? null}
+      initialActiveFocusSession={activeFocusSession}
     />
   )
 }
