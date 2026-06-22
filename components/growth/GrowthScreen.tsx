@@ -6,11 +6,13 @@ import { useGoals } from '@/hooks/useGoals'
 import { GoalCard } from './GoalCard'
 import { GoalForm, type GoalFormData } from './GoalForm'
 import { GrowthEmptyState } from './GrowthEmptyState'
-import type { Goal } from '@/types'
+import { EvidenceOfGrowth } from './EvidenceOfGrowth'
+import type { Goal, Reflection } from '@/types'
 
 interface GrowthScreenProps {
   initialGoals:        Goal[]
   projectCountsByGoal: Record<string, number>
+  reflections:         Reflection[]
 }
 
 /**
@@ -18,7 +20,7 @@ interface GrowthScreenProps {
  * Adding/archiving goes through useGoals (optimistic).
  * The floating "+" button always opens the GoalForm sheet.
  */
-export function GrowthScreen({ initialGoals, projectCountsByGoal }: GrowthScreenProps) {
+export function GrowthScreen({ initialGoals, projectCountsByGoal, reflections }: GrowthScreenProps) {
   const { goals, add, error } = useGoals(initialGoals)
   const [showForm, setShowForm] = useState(false)
 
@@ -86,6 +88,8 @@ export function GrowthScreen({ initialGoals, projectCountsByGoal }: GrowthScreen
             )}
           </div>
         )}
+        {/* Evidence of Growth — always shown below goals */}
+        <EvidenceOfGrowth reflections={reflections} />
       </main>
 
       {/* FAB */}

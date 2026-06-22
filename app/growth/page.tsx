@@ -1,12 +1,14 @@
-import { createClient }    from '@/lib/supabase/server'
-import { fetchGoals }      from '@/lib/goals'
-import { fetchProjects }   from '@/lib/projects'
-import { GrowthScreen }    from '@/components/growth/GrowthScreen'
+import { createClient }       from '@/lib/supabase/server'
+import { fetchGoals }         from '@/lib/goals'
+import { fetchProjects }      from '@/lib/projects'
+import { fetchAllReflections } from '@/lib/reflections'
+import { GrowthScreen }       from '@/components/growth/GrowthScreen'
 
 /**
  * Server Component entry point for the Growth tab.
- * Fetches all non-archived goals + all non-archived projects so GoalCard
- * can show per-goal project counts without extra client-side requests.
+ * Fetches goals, projects, and all reflections in parallel so GrowthScreen
+ * can show per-goal project counts and the Evidence of Growth timeline
+ * without extra client-side requests.
  */
 export default async function GrowthPage() {
   const supabase = await createClient()
@@ -14,12 +16,13 @@ export default async function GrowthPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    return <GrowthScreen initialGoals={[]} projectCountsByGoal={{}} />
+    return <GrowthScreen initialGoals={[]} projectCountsByGoal={{}} reflections={[]} />
   }
 
-  const [goals, projects] = await Promise.all([
+  const [goals, projects, reflections] = await Promise.all([
     fetchGoals(supabase, 'all'),
     fetchProjects(supabase, 'all'),
+    fetchAllReflections(supabase),
   ])
 
   // Build { goalId → count } map from projects
@@ -34,6 +37,7 @@ export default async function GrowthPage() {
     <GrowthScreen
       initialGoals={goals}
       projectCountsByGoal={projectCountsByGoal}
+      reflections={reflections}
     />
   )
 }

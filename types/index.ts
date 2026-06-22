@@ -165,3 +165,90 @@ export interface ProjectWithTasks {
   tasks:   Task[]
   goal:    Goal | null
 }
+
+// ── User profile ──────────────────────────────────────────────────────────────
+
+/** Public profile row from the `users` table (extends auth.users). */
+export interface UserProfile {
+  id:               string
+  preferred_name:   string | null
+  display_name:     string | null
+  timezone:         string
+  last_active_at:   string | null  // ISO timestamp; drives Welcome Back screen
+  tone_preference:  'warm' | 'direct' | 'hype'
+  sparks_balance:   number
+  sparks_lifetime:  number
+}
+
+// ── Score & reflection ────────────────────────────────────────────────────────
+
+/**
+ * Shape of the `breakdown` JSONB column in `daily_scores`.
+ * Each component maps directly to a weighted slice of the 0–100 score.
+ */
+export interface ScoreBreakdown {
+  tasks_pct:       number   // 0–40
+  habits_pct:      number   // 0–30
+  reflection_done: boolean  // +20
+  mood_logged:     boolean  // +10
+}
+
+/** Matches the `daily_scores` table. */
+export interface DailyScore {
+  id:        string
+  user_id:   string
+  date:      string
+  score_pct: number
+  breakdown: ScoreBreakdown
+}
+
+/** Matches the `reflections` table. Private — owner only. */
+export interface Reflection {
+  id:          string
+  user_id:     string
+  date:        string
+  went_well:   string
+  time_wasted: string | null
+  biggest_win: string | null
+  created_at:  string
+}
+
+export interface NewReflection {
+  went_well:   string
+  time_wasted: string | null
+  biggest_win: string | null
+}
+
+// ── Mood logs ─────────────────────────────────────────────────────────────────
+
+export type MoodPeriod = 'morning' | 'midday' | 'evening'
+
+/** Matches the `mood_logs` table. Private — owner only. */
+export interface MoodLog {
+  id:           string
+  user_id:      string
+  logged_at:    string
+  period:       MoodPeriod
+  mood_value:   number       // 1–5
+  energy_value: number | null
+}
+
+export interface NewMoodLog {
+  period:       MoodPeriod
+  mood_value:   number
+  energy_value: number | null
+}
+
+// ── Morning coach ─────────────────────────────────────────────────────────────
+
+/**
+ * Computed from real data server-side — zero API calls.
+ * Nulls mean "no data yet"; the coach card gracefully omits those sentences.
+ */
+export interface CoachData {
+  preferredName:   string | null
+  focusHoursWeek:  number          // summed from time_entries this calendar week
+  goalTitle:       string | null   // most recently active goal
+  goalProgressPct: number | null   // its current progress_pct (manual)
+  topTaskTitle:    string | null   // highest-priority incomplete task for today
+}

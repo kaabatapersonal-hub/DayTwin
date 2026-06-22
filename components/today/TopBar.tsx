@@ -1,15 +1,21 @@
 import { formatDateDisplay } from '@/lib/format'
+import { ScoreRing } from './ScoreRing'
 
 interface TopBarProps {
-  date: string // ISO date "YYYY-MM-DD"
+  date:       string  // ISO "YYYY-MM-DD"
+  scorePct:   number  // 0–100; drives the compact ring on the right
+  onHardDay:  () => void
 }
 
 /**
- * Top bar for the Today screen.
- * Session 2: wordmark + date only.
- * Space is reserved for the streak badge (Session 5) and Sparks balance (Session 11).
+ * Today screen top bar.
+ * Left:  DayTwin wordmark + date.
+ * Right: compact score ring (32px) + heart button for the Hard Day overlay.
+ *
+ * The heart button is always visible and easy to reach — this is intentional.
+ * On a hard day, someone shouldn't have to hunt for the way in.
  */
-export function TopBar({ date }: TopBarProps) {
+export function TopBar({ date, scorePct, onHardDay }: TopBarProps) {
   return (
     <header className="flex items-center justify-between px-5 pt-safe-top pb-4">
       <div>
@@ -20,7 +26,23 @@ export function TopBar({ date }: TopBarProps) {
           {formatDateDisplay(date)}
         </p>
       </div>
-      {/* Streak badge and Sparks balance go here in Sessions 5 and 11 */}
+
+      <div className="flex items-center gap-3">
+        {/* Compact score ring — always visible, updated reactively */}
+        <ScoreRing pct={scorePct} size={32} compact />
+
+        {/* Hard Day button — heart, always in the top-right, easy to reach */}
+        <button
+          onClick={onHardDay}
+          className="w-9 h-9 flex items-center justify-center text-white/40 active:text-white/80 transition-colors"
+          aria-label="Hard day — open support screen"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
+      </div>
     </header>
   )
 }

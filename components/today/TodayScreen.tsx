@@ -2,40 +2,61 @@
 
 import { useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { TopBar }        from './TopBar'
-import { IntentionCard } from './IntentionCard'
-import { TimelineView }  from './TimelineView'
-import { QuickTaskList } from './QuickTaskList'
-import { EmptyState }    from './EmptyState'
+import { TopBar }          from './TopBar'
+import { IntentionCard }   from './IntentionCard'
+import { TimelineView }    from './TimelineView'
+import { QuickTaskList }   from './QuickTaskList'
+import { EmptyState }      from './EmptyState'
+import { CoachCard }       from './CoachCard'
+import { MoodCheckIn }     from './MoodCheckIn'
+import { ReflectionCard }  from './ReflectionCard'
+import { ScoreRing }       from './ScoreRing'
+import { HardDayOverlay }  from './HardDayOverlay'
 import { TaskForm, type FormMode, type TaskFormData } from './TaskForm'
-import { TodayHabits }   from '@/components/habits/TodayHabits'
-import { useTasks }      from '@/hooks/useTasks'
-import { useIntention }  from '@/hooks/useIntention'
-import { useTodayHabits } from '@/hooks/useTodayHabits'
-import type { Task, Intention, TodayHabit } from '@/types'
+import { TodayHabits }     from '@/components/habits/TodayHabits'
+import { useTasks }        from '@/hooks/useTasks'
+import { useIntention }    from '@/hooks/useIntention'
+import { useTodayHabits }  from '@/hooks/useTodayHabits'
+import { useScore }        from '@/hooks/useScore'
+import { useMood }         from '@/hooks/useMood'
+import { useReflection }   from '@/hooks/useReflection'
+import type {
+  Task, Intention, TodayHabit, Reflection, MoodLog, CoachData, NewMoodLog, NewReflection,
+} from '@/types'
 
 interface FormState {
   mode: FormMode
-  task?: Task  // present only when mode === 'edit'
+  task?: Task
 }
 
 interface TodayScreenProps {
   initialTasks:       Task[]
   initialIntention:   Intention | null
   initialTodayHabits: TodayHabit[]
-  date:               string  // ISO "YYYY-MM-DD"
+  date:               string
+  initialScore:       number
+  initialReflection:  Reflection | null
+  initialTodayMoods:  MoodLog[]
+  coachData:          CoachData
+  activeGoalId:       string | null  // for Hard Day overlay Future Me lookup
 }
 
 /**
  * Root client component for the Today screen.
  *
- * Owns all mutable state and wires up the task, intention, and habit hooks.
- * The TaskForm sheet is rendered at this level so it overlays the full screen.
- * Sub-components receive only the data and callbacks they need — no prop drilling
- * of the whole task list.
+ * Score is recalculated after every change to tasks, habits, mood, or reflection
+ * so the ring always reflects the current state without a page reload.
  */
 export function TodayScreen({
-  initialTasks, initialIntention, initialTodayHabits, date,
+  initialTasks,
+  initialIntention,
+  initialTodayHabits,
+  date,
+  initialScore,
+  initialReflection,
+  initialTodayMoods,
+  coachData,
+  activeGoalId,
 }: TodayScreenProps) {
   const {
     timeBlocked, quick,
@@ -55,11 +76,35 @@ export function TodayScreen({
     error: habitError,
   } = useTodayHabits(initialTodayHabits)
 
-  const [formState, setFormState] = useState<FormState | null>(null)
+  const { moods, log: logMood, error: moodError } = useMood(initialTodayMoods)
 
-  const hasAnyTasks   = timeBlocked.length > 0 || quick.length > 0
-  const hasAnything   = hasAnyTasks || todayHabits.length > 0
-  const displayError  = taskError ?? intentionError ?? habitError
+  const {
+    reflection, submit: submitReflection, error: reflectionError,
+  } = useReflection(initialReflection, date)
+
+  const { score, recalculate } = useScore(initialScore, date)
+
+  const [formState,   setFormState]   = useState<FormState | null>(null)
+  const [showHardDay, setShowHardDay] = useState(false)
+
+  const hasAnyTasks  = timeBlocked.length > 0 || quick.length > 0
+  const hasAnything  = hasAnyTasks || todayHabits.length > 0
+  const displayError = taskError ?? intentionError ?? habitError ?? moodError
+
+  // Recalculates score using the freshest in-memory snapshots of all factors.
+  // Called after every tracked change — keeps the ring reactive.
+  function triggerScoreRecalc(opts?: {
+    overrideTasks?:    Task[]
+    overrideHabits?:   typeof todayHabits
+    overrideReflDone?: boolean
+    overrideMoodCount?: number
+  }) {
+    const tasks      = opts?.overrideTasks    ?? [...timeBlocked, ...quick]
+    const habits     = opts?.overrideHabits   ?? todayHabits
+    const reflDone   = opts?.overrideReflDone ?? reflection !== null
+    const moodLogged = (opts?.overrideMoodCount ?? moods.length) > 0
+    recalculate(tasks, habits, reflDone, moodLogged).catch(() => {})
+  }
 
   function openAdd(mode: 'add-time-block' | 'add-quick') {
     setFormState({ mode })
@@ -77,20 +122,58 @@ export function TodayScreen({
       await add(data)
     }
     setFormState(null)
+    triggerScoreRecalc()
   }
 
   async function handleDelete() {
     if (!formState?.task) return
     await remove(formState.task.id)
     setFormState(null)
+    triggerScoreRecalc()
+  }
+
+  async function handleToggleComplete(task: Task) {
+    await toggleComplete(task)
+    triggerScoreRecalc()
+  }
+
+  async function handleMoodLog(payload: NewMoodLog) {
+    await logMood(payload)
+    // Pass the incremented count since state won't have updated yet
+    triggerScoreRecalc({ overrideMoodCount: moods.length + 1 })
+  }
+
+  async function handleReflectionSubmit(payload: NewReflection) {
+    await submitReflection(payload)
+    triggerScoreRecalc({ overrideReflDone: true })
+  }
+
+  async function handleHabitToggle(habitId: string) {
+    await toggleBoolean(habitId)
+    triggerScoreRecalc()
+  }
+
+  async function handleHabitStop(habitId: string) {
+    await stopTimer(habitId)
+    triggerScoreRecalc()
   }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <TopBar date={date} />
+      <TopBar
+        date={date}
+        scorePct={score}
+        onHardDay={() => setShowHardDay(true)}
+      />
 
-      <div className="flex-1 flex flex-col px-4 pb-24">
-        {/* Morning intention — always sits at the top of the content area */}
+      <div className="flex-1 flex flex-col px-4 pb-28">
+        {/* Morning coach — hides itself after noon (client-side check in CoachCard) */}
+        <CoachCard data={coachData} />
+
+        {/* Mood check-in — shows for the current period if not yet logged */}
+        <MoodCheckIn moods={moods} onLog={handleMoodLog} />
+
+        {/* Morning intention */}
         <AnimatePresence>
           {(showPrompt || intention) && (
             <IntentionCard
@@ -102,7 +185,6 @@ export function TodayScreen({
           )}
         </AnimatePresence>
 
-        {/* Error banner — surfaces Supabase failures; never silent */}
         {displayError && (
           <div className="mb-3 px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20">
             <p className="text-xs text-red-400 font-body">{displayError}</p>
@@ -120,13 +202,13 @@ export function TodayScreen({
               <>
                 <TimelineView
                   tasks={timeBlocked}
-                  onToggleComplete={toggleComplete}
+                  onToggleComplete={handleToggleComplete}
                   onEdit={openEdit}
                   onAdd={() => openAdd('add-time-block')}
                 />
                 <QuickTaskList
                   tasks={quick}
-                  onToggleComplete={toggleComplete}
+                  onToggleComplete={handleToggleComplete}
                   onEdit={openEdit}
                   onAdd={() => openAdd('add-quick')}
                 />
@@ -136,17 +218,30 @@ export function TodayScreen({
             {todayHabits.length > 0 && (
               <TodayHabits
                 habits={todayHabits}
-                onToggleBoolean={toggleBoolean}
+                onToggleBoolean={handleHabitToggle}
                 onIncrementCount={incrementCount}
                 onStartTimer={startTimer}
-                onStopTimer={stopTimer}
+                onStopTimer={handleHabitStop}
               />
             )}
           </div>
         )}
+
+        {/* Score ring — always visible, reactively updated */}
+        <div className="mt-8 flex justify-center">
+          <ScoreRing pct={score} size={88} />
+        </div>
+
+        {/* Evening reflection — appears after 7pm, scrollable past, never blocking */}
+        <div className="mt-6">
+          <ReflectionCard
+            reflection={reflection}
+            onSubmit={handleReflectionSubmit}
+            error={reflectionError}
+          />
+        </div>
       </div>
 
-      {/* Task form bottom sheet — rendered at root so it overlays everything */}
       <AnimatePresence>
         {formState && (
           <TaskForm
@@ -159,6 +254,14 @@ export function TodayScreen({
           />
         )}
       </AnimatePresence>
+
+      {/* Full-screen overlay — not a modal, no swipe-to-dismiss */}
+      {showHardDay && (
+        <HardDayOverlay
+          activeGoalId={activeGoalId}
+          onClose={() => setShowHardDay(false)}
+        />
+      )}
     </div>
   )
 }
