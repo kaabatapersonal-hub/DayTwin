@@ -312,6 +312,74 @@ export interface TimeCategorySummary {
   total_seconds: number
 }
 
+// ── Challenges ───────────────────────────────────────────────────────────────
+
+export type ChallengeType   = 'score_battle' | 'habit_pact' | 'friends_feed'
+export type ChallengeStatus = 'pending' | 'active' | 'completed' | 'cancelled'
+
+/**
+ * Matches the `challenges` table.
+ * entry_cost_sparks / pool_total_sparks exist for display only — no Sparks
+ * deduction or payout logic runs until Session 11.
+ */
+export interface Challenge {
+  id:                string
+  type:              ChallengeType
+  habit_id:          string | null   // habit_pact only
+  created_by:        string
+  invitee_id:        string | null   // set on creation, cleared when invitee joins
+  duration_days:     number | null   // null for friends_feed (no end date)
+  starts_at:         string          // "YYYY-MM-DD"
+  ends_at:           string | null   // null for friends_feed
+  entry_cost_sparks: number          // display only this session
+  pool_total_sparks: number          // display only this session
+  status:            ChallengeStatus
+  created_at:        string
+}
+
+export interface NewChallenge {
+  type:              ChallengeType
+  habit_id:          string | null
+  duration_days:     number | null
+  entry_cost_sparks: number
+}
+
+/** Matches the `challenge_participants` table. */
+export interface ChallengeParticipant {
+  id:            string
+  challenge_id:  string
+  user_id:       string
+  joined_at:     string
+  current_score: number          // score_battle: average since start; others: 0
+  streak_held:   boolean | null  // habit_pact: true while holding; null for other types
+}
+
+/**
+ * Participant row joined with their public profile.
+ * Used in the challenge detail screens — challenge-shared data only.
+ */
+export interface ChallengeParticipantView {
+  id:            string
+  user_id:       string
+  display_name:  string | null
+  username:      string | null
+  avatar_url:    string | null
+  current_score: number
+  streak_held:   boolean | null
+  joined_at:     string
+}
+
+/**
+ * Full detail shape for the challenge detail screen.
+ * habit_name is the pact habit's name — visible to both participants per
+ * privacy-and-friend-safety.md's challenge-shared exception.
+ */
+export interface ChallengeWithParticipants {
+  challenge:    Challenge
+  participants: ChallengeParticipantView[]
+  habit_name:   string | null   // habit_pact only
+}
+
 // ── Friends ───────────────────────────────────────────────────────────────────
 
 export type FriendshipStatus = 'pending' | 'accepted' | 'blocked'

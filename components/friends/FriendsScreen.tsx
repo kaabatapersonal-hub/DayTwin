@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import Link                        from 'next/link'
 import { AnimatePresence }         from 'framer-motion'
 import type { FriendView, FriendRequest } from '@/types'
 import { AccountClaimPrompt }    from './AccountClaimPrompt'
@@ -105,6 +106,21 @@ export function FriendsScreen({
       </header>
 
       <main className="flex-1 pb-32">
+        {/* Challenges shortcut */}
+        <Link
+          href="/friends/challenges"
+          className="mx-4 mt-3 mb-1 flex items-center justify-between px-4 py-3 bg-white/[0.04] border border-white/[0.06] rounded-2xl active:bg-white/[0.07] transition-colors"
+        >
+          <div className="flex items-center gap-2.5">
+            <span className="text-base">⚡</span>
+            <span className="text-sm font-body font-medium text-white/70">Challenges</span>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            strokeWidth="2.5" strokeLinecap="round" className="text-white/25">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </Link>
+
         {requests.length > 0 && (
           <FriendRequestList requests={requests} onRefresh={refresh} />
         )}

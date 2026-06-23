@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter }            from 'next/navigation'
+import { useState, useEffect }          from 'react'
 import type { FriendView, FriendProfileData, FriendScoreDay } from '@/types'
 import { growthLevel, shortWeekday, todayISO }                 from '@/lib/format'
 import { AvatarInitials }                                       from './FriendList'
+import { CreateChallengeSheet }                                 from '@/components/challenges/CreateChallengeSheet'
 
 interface FriendProfileProps {
   friend:    FriendView
@@ -21,12 +21,11 @@ interface FriendProfileProps {
  * on the client to not query breakdown or habit names.
  */
 export function FriendProfile({ friend, onClose, onRemoved }: FriendProfileProps) {
-  const router = useRouter()
-
   const [profile,      setProfile]      = useState<FriendProfileData | null>(null)
   const [loading,      setLoading]      = useState(true)
   const [error,        setError]        = useState<string | null>(null)
   const [showActions,  setShowActions]  = useState(false)
+  const [showChallenge, setShowChallenge] = useState(false)
   const [acting,       setActing]       = useState(false)
   const [actionError,  setActionError]  = useState<string | null>(null)
 
@@ -180,12 +179,21 @@ export function FriendProfile({ friend, onClose, onRemoved }: FriendProfileProps
       {/* Challenge FAB */}
       <div className="fixed bottom-8 left-0 right-0 px-5">
         <button
-          onClick={() => router.push('/friends/challenges')}
+          onClick={() => setShowChallenge(true)}
           className="w-full py-4 rounded-2xl bg-teal text-background font-body font-semibold text-base active:scale-[0.98] transition-transform"
         >
           Challenge
         </button>
       </div>
+
+      {/* Create challenge sheet */}
+      {showChallenge && (
+        <CreateChallengeSheet
+          friendId={friend.user_id}
+          friendName={friend.display_name ?? friend.username ?? 'your friend'}
+          onClose={() => setShowChallenge(false)}
+        />
+      )}
 
       {/* Actions sheet */}
       {showActions && (
