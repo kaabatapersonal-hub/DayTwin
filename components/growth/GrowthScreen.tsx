@@ -1,32 +1,112 @@
 'use client'
 
-import { useState }                from 'react'
-import { AnimatePresence }          from 'framer-motion'
-import { useGoals }                 from '@/hooks/useGoals'
-import { GoalCard }                 from './GoalCard'
-import { GoalForm, type GoalFormData } from './GoalForm'
-import { GrowthEmptyState }         from './GrowthEmptyState'
-import { EvidenceOfGrowth }         from './EvidenceOfGrowth'
-import { WeeklyTimeSummary }        from '@/components/tracking/WeeklyTimeSummary'
-import type { Goal, Reflection, TimeCategorySummary } from '@/types'
+import { useState, useEffect, useCallback } from 'react'
+import { AnimatePresence }                    from 'framer-motion'
+import { useGoals }                           from '@/hooks/useGoals'
+import { GoalCard }                           from './GoalCard'
+import { GoalForm, type GoalFormData }        from './GoalForm'
+import { GrowthEmptyState }                   from './GrowthEmptyState'
+import { EvidenceOfGrowth }                   from './EvidenceOfGrowth'
+import { WeeklyTimeSummary }                  from '@/components/tracking/WeeklyTimeSummary'
+import { ConsistencyHeatmap }                 from './ConsistencyHeatmap'
+import { WeeklyReviewCard }                   from './WeeklyReviewCard'
+import { MilestoneCelebration }               from './MilestoneCelebration'
+import { BadgesList }                         from './BadgesList'
+import { getWeekStart, todayISO }             from '@/lib/format'
+import type {
+  Goal, Reflection, TimeCategorySummary,
+  WeeklyReview, UserBadge, HeatmapDay,
+} from '@/types'
 
 interface GrowthScreenProps {
   initialGoals:        Goal[]
   projectCountsByGoal: Record<string, number>
   reflections:         Reflection[]
   weeklySummary:       TimeCategorySummary[]
+  initialReviews:      WeeklyReview[]
+  initialBadges:       UserBadge[]
+  heatmapData:         HeatmapDay[]
+  tonePreference:      'warm' | 'direct' | 'hype'
+}
+
+/** Local storage key for tracking which badge celebrations have been dismissed. */
+const SEEN_BADGES_KEY = 'daytwin_seen_badges'
+
+function readSeenBadges(): Set<string> {
+  try {
+    const raw = typeof window !== 'undefined' ? localStorage.getItem(SEEN_BADGES_KEY) : null
+    return new Set(raw ? JSON.parse(raw) : [])
+  } catch {
+    return new Set()
+  }
+}
+
+function markBadgeSeen(badgeId: string): void {
+  try {
+    const current = readSeenBadges()
+    current.add(badgeId)
+    localStorage.setItem(SEEN_BADGES_KEY, JSON.stringify(Array.from(current)))
+  } catch { /* localStorage unavailable (private mode / SSR) — silent */ }
 }
 
 /**
- * Growth tab root — goals list, weekly time summary, and Evidence of Growth timeline.
- * Goal add/archive goes through useGoals (optimistic). The time summary and
- * reflections are server-fetched, static for the session.
+ * Growth tab root — goals, weekly review, consistency heatmap,
+ * achievements, time summary, and Evidence of Growth timeline.
+ *
+ * Milestone celebrations fire at most once per badge per device.
+ * The badge ID is stored in localStorage after the first dismissal.
+ * Server-side triggers guarantee the badge is only awarded once in the DB;
+ * this check only guards the UI overlay.
  */
 export function GrowthScreen({
   initialGoals, projectCountsByGoal, reflections, weeklySummary,
+  initialReviews, initialBadges, heatmapData, tonePreference,
 }: GrowthScreenProps) {
   const { goals, add, error } = useGoals(initialGoals)
   const [showForm, setShowForm] = useState(false)
+
+  // Weekly review
+  const [reviews,     setReviews]     = useState<WeeklyReview[]>(initialReviews)
+  const [generating,  setGenerating]  = useState(false)
+  const thisWeekStart  = getWeekStart(todayISO())
+  const currentReview  = reviews.find(r => r.week_start === thisWeekStart) ?? null
+
+  // Milestone celebration queue
+  // Checked client-side on mount; only fires for badges not yet in localStorage
+  const [pendingBadges,  setPendingBadges]  = useState<UserBadge[]>([])
+  const [celebrationBadge, setCelebrationBadge] = useState<UserBadge | null>(null)
+
+  useEffect(() => {
+    const seen = readSeenBadges()
+    const unseen = initialBadges.filter(ub => !seen.has(ub.badge_id))
+    if (unseen.length > 0) {
+      setPendingBadges(unseen.slice(1))   // queue the rest
+      setCelebrationBadge(unseen[0])      // show the first immediately
+    }
+  }, [initialBadges])
+
+  function handleDismissCelebration() {
+    if (celebrationBadge) markBadgeSeen(celebrationBadge.badge_id)
+    const next = pendingBadges[0] ?? null
+    setCelebrationBadge(next)
+    if (next) setPendingBadges(prev => prev.slice(1))
+  }
+
+  const handleGenerate = useCallback(async () => {
+    setGenerating(true)
+    try {
+      const res = await fetch('/api/growth/weekly-review', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ week_start: thisWeekStart }),
+      })
+      if (!res.ok) return
+      const review = await res.json() as WeeklyReview
+      setReviews(prev => [review, ...prev.filter(r => r.week_start !== review.week_start)])
+    } finally {
+      setGenerating(false)
+    }
+  }, [thisWeekStart])
 
   async function handleAdd(data: GoalFormData) {
     await add(data)
@@ -41,18 +121,19 @@ export function GrowthScreen({
     <div className="min-h-screen bg-background text-white flex flex-col">
       <header className="pt-safe-top px-5 pb-4 bg-background">
         <h1 className="font-heading text-2xl font-bold text-white">Growth</h1>
-        <p className="text-sm font-body text-white/40 mt-0.5">Your goals and projects</p>
+        <p className="text-sm font-body text-white/40 mt-0.5">Your goals and progress</p>
       </header>
 
       {error && (
         <p className="text-xs text-red-400 font-body px-5 mb-2">{error}</p>
       )}
 
-      <main className="flex-1 px-4 pb-32">
+      <main className="flex-1 px-4 pb-32 space-y-5">
+        {/* Goals */}
         {!hasGoals ? (
           <GrowthEmptyState onAdd={() => setShowForm(true)} />
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {activeGoals.length > 0 && (
               <section>
                 <h2 className="text-xs font-body text-white/40 uppercase tracking-widest mb-3">
@@ -89,10 +170,24 @@ export function GrowthScreen({
           </div>
         )}
 
-        {/* Weekly time breakdown — always shown (empty state handled inside component) */}
+        {/* Consistency heatmap — below goals, above Evidence of Growth per spec */}
+        <ConsistencyHeatmap data={heatmapData} />
+
+        {/* Weekly review card */}
+        <WeeklyReviewCard
+          review={currentReview}
+          canGenerate={!currentReview}
+          onGenerate={handleGenerate}
+          generating={generating}
+        />
+
+        {/* Achievements — badges earned so far */}
+        <BadgesList badges={initialBadges} />
+
+        {/* Weekly time breakdown */}
         <WeeklyTimeSummary summaries={weeklySummary} />
 
-        {/* Evidence of Growth — always shown below time summary */}
+        {/* Evidence of Growth — unchanged from Session 5 */}
         <EvidenceOfGrowth reflections={reflections} />
       </main>
 
@@ -115,6 +210,15 @@ export function GrowthScreen({
           <GoalForm key="goal-form" onSubmit={handleAdd} onClose={() => setShowForm(false)} />
         )}
       </AnimatePresence>
+
+      {/* Milestone celebration overlay — shown once per badge, gated by localStorage */}
+      {celebrationBadge && (
+        <MilestoneCelebration
+          badge={celebrationBadge}
+          tone={tonePreference}
+          onDismiss={handleDismissCelebration}
+        />
+      )}
     </div>
   )
 }

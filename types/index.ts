@@ -460,3 +460,57 @@ export interface InviteToken {
   claimed_at: string | null
   claimed_by: string | null
 }
+
+// ── Weekly review ─────────────────────────────────────────────────────────────
+
+/**
+ * Matches the `weekly_reviews` table.
+ * Computed every Sunday by the Edge Function and cached here.
+ * ai_summary is always null in V1 — the column exists for V2 Pro.
+ */
+export interface WeeklyReview {
+  id:              string
+  user_id:         string
+  week_start:      string        // "YYYY-MM-DD" (Monday)
+  tasks_completed: number
+  habits_pct:      number        // 0–100
+  focus_hours:     number        // hours, 1 decimal place
+  best_day:        string | null // "YYYY-MM-DD"
+  worst_day:       string | null // "YYYY-MM-DD" — only days the user was active
+  ai_summary:      null          // always null in V1
+}
+
+// ── Badges ────────────────────────────────────────────────────────────────────
+
+export type BadgeRarity = 'common' | 'rare' | 'legendary'
+
+/** Matches the `badges` table. */
+export interface Badge {
+  id:          string
+  name:        string
+  description: string
+  icon:        string        // emoji or asset path
+  rarity:      BadgeRarity
+  criteria:    string        // human-readable; logic lives in triggers
+}
+
+/**
+ * Matches the `user_badges` table, joined with the badge details.
+ * Visible to accepted friends per the RLS policy.
+ */
+export interface UserBadge {
+  user_id:   string
+  badge_id:  string
+  earned_at: string
+  badge:     Badge
+}
+
+/**
+ * One cell in the consistency heatmap.
+ * score_pct is null for days the user had no daily_scores row
+ * (i.e. didn't open the app) — not for days with a 0 score.
+ */
+export interface HeatmapDay {
+  date:      string         // "YYYY-MM-DD"
+  score_pct: number | null  // null = no data (gray); 0–100 = active (teal gradient)
+}
