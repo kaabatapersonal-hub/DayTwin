@@ -5,8 +5,23 @@ import { ensureAnonymousSession } from '@/lib/auth'
 import { TrackingProvider }       from '@/contexts/TrackingContext'
 import { TrackingBar }            from '@/components/tracking/TrackingBar'
 import { ReducedMotionProvider }  from '@/contexts/ReducedMotionContext'
+import { ThemeProvider }          from '@/contexts/ThemeContext'
+import { SoundProvider }          from '@/contexts/SoundContext'
+import { SoundBar }               from '@/components/sound/SoundBar'
 
-export function Providers({ children }: { children: React.ReactNode }) {
+interface ProvidersProps {
+  children:       React.ReactNode
+  initialThemeId: string | null
+  initialAccent:  string
+  initialBg:      string
+}
+
+export function Providers({
+  children,
+  initialThemeId,
+  initialAccent,
+  initialBg,
+}: ProvidersProps) {
   useEffect(() => {
     ensureAnonymousSession()
 
@@ -28,7 +43,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
           notifyButton:              { enable: false },
           allowLocalhostAsSecureOrigin: true,
         })
-        // When subscription changes, save the player ID
         OneSignal.Notifications.addEventListener('permissionChange', async () => {
           const playerId = OneSignal.User.PushSubscription.id
           if (playerId) {
@@ -44,16 +58,20 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <ReducedMotionProvider>
-      <TrackingProvider>
-        {/*
-          TrackingBar is sticky top-0, part of the normal document flow.
-          It returns null when no timer is active (zero height, no layout space).
-          When active, it pushes all page content down by its 36px height.
-        */}
-        <TrackingBar />
-        {children}
-      </TrackingProvider>
-    </ReducedMotionProvider>
+    <ThemeProvider
+      initialThemeId={initialThemeId}
+      initialAccent={initialAccent}
+      initialBg={initialBg}
+    >
+      <SoundProvider>
+        <ReducedMotionProvider>
+          <TrackingProvider>
+            <TrackingBar />
+            {children}
+            <SoundBar />
+          </TrackingProvider>
+        </ReducedMotionProvider>
+      </SoundProvider>
+    </ThemeProvider>
   )
 }

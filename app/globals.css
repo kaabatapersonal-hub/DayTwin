@@ -2,12 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/**
+ * CSS custom properties for the theme system.
+ * Values are space-separated RGB channels (not hex) so Tailwind's opacity
+ * modifiers work: rgb(var(--color-teal) / 0.1) gives the correct rgba value.
+ *
+ * ThemeContext overrides --color-bg and --color-teal on document.documentElement
+ * when the user switches themes. All other tokens are fixed design values.
+ */
 :root {
-  --background: #080808;
+  --color-bg:   8 8 8;       /* #080808 — DayTwin default background */
+  --color-teal: 45 212 191;  /* #2DD4BF — DayTwin default accent */
 }
 
 body {
-  background: var(--background);
+  background: rgb(var(--color-bg));
   color: #ffffff;
 }
 
@@ -28,16 +37,14 @@ select {
   font-size: 16px;
 }
 
-/* Remove the 300ms tap delay on every element, not just interactive ones.
-   The universal selector catches custom tap targets (divs, spans) that
-   buttons/links don't cover. */
+/* Remove the 300ms tap delay on every element, not just interactive ones. */
 *, *::before, *::after {
   touch-action: manipulation;
 }
 
-/* Extra top padding for elements using pt-safe-top when the tracking bar is visible.
-   The tracking bar is 36px (h-9) of content. The data attribute is set by TrackingContext
-   so all pt-safe-top headers shift down automatically without prop changes. */
+/* Extra top padding when the tracking bar is visible.
+   The tracking bar is 36px (h-9) of content. The data attribute is set by
+   TrackingContext so all pt-safe-top headers shift down automatically. */
 html[data-tracking-active="true"] .pt-safe-top {
   padding-top: calc(max(2rem, env(safe-area-inset-top)) + 36px);
 }

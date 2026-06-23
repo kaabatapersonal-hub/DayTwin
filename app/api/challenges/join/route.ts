@@ -21,10 +21,11 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    // Verify the challenge is pending and this user is the invitee
+    // Verify the challenge is pending and this user is the invitee.
+    // Also fetch entry_cost_sparks so we can deduct before adding the participant.
     const { data: challenge, error: fetchError } = await supabase
       .from('challenges')
-      .select('id, status, invitee_id, type')
+      .select('id, status, invitee_id, type, entry_cost_sparks, pool_total_sparks')
       .eq('id', challenge_id)
       .eq('status', 'pending')
       .maybeSingle()
@@ -35,6 +36,32 @@ export async function POST(req: NextRequest) {
 
     if (challenge.invitee_id !== user.id) {
       return NextResponse.json({ error: 'Not the invitee for this challenge' }, { status: 403 })
+    }
+
+    // Deduct entry cost for the joiner before adding them as participant
+    const cost = (challenge.entry_cost_sparks as number) ?? 0
+    if (cost > 0) {
+      const { data: deductResult, error: deductError } = await supabase.rpc('deduct_sparks', {
+        p_user_id:   user.id,
+        p_amount:    cost,
+        p_reason:    'challenge_entry',
+        p_item_type: 'challenge',
+        p_item_id:   challenge_id,
+      })
+
+      if (deductError || !deductResult?.success) {
+        const shortfall = deductResult?.shortfall as number | undefined
+        const msg = shortfall
+          ? `You need ${shortfall} more Sparks to join this challenge`
+          : 'Insufficient Sparks balance'
+        return NextResponse.json({ error: msg }, { status: 402 })
+      }
+
+      // Update pool total — creator's cost + joiner's cost
+      await supabase
+        .from('challenges')
+        .update({ pool_total_sparks: ((challenge.pool_total_sparks as number) ?? 0) + cost })
+        .eq('id', challenge_id)
     }
 
     // Insert participant row — activate_challenge_when_full trigger fires here

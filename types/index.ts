@@ -180,6 +180,7 @@ export interface UserProfile {
   tone_preference:  TonePreference
   sparks_balance:   number
   sparks_lifetime:  number
+  active_theme_id:  string | null
 }
 
 // ── Score & reflection ────────────────────────────────────────────────────────
@@ -515,6 +516,51 @@ export interface UserBadge {
 export interface HeatmapDay {
   date:      string         // "YYYY-MM-DD"
   score_pct: number | null  // null = no data (gray); 0–100 = active (teal gradient)
+}
+
+// ── Shop & themes ─────────────────────────────────────────────────────────────
+
+/** Matches the `themes` table. */
+export interface Theme {
+  id:             string
+  name:           string
+  accent_hex:     string
+  background_hex: string
+  cost_sparks:    number
+  category:       string | null
+}
+
+export type ProfileItemType = 'frame' | 'avatar' | 'border' | 'icon'
+
+/** Matches the `profile_items` table. */
+export interface ProfileItem {
+  id:          string
+  type:        ProfileItemType
+  name:        string
+  /** CSS descriptor string (frames/borders) or shape identifier (avatars/icons). */
+  asset_url:   string
+  cost_sparks: number
+}
+
+export interface MotivationCard {
+  title: string
+  body:  string
+}
+
+/** Matches the `motivation_packs` table. content is an array of MotivationCard. */
+export interface MotivationPack {
+  id:          string
+  name:        string
+  content:     MotivationCard[]
+  cost_sparks: number
+}
+
+/** Matches the `sound_packs` table. */
+export interface SoundPack {
+  id:          string
+  name:        string
+  audio_url:   string
+  cost_sparks: number
 }
 
 // ── Sparks ────────────────────────────────────────────────────────────────────

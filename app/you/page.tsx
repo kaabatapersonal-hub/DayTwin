@@ -26,11 +26,12 @@ export default async function YouPage() {
       <SettingsScreen
         profile={null}
         settings={{ user_id: '', ...DEFAULT_SETTINGS }}
+        sparksBalance={0}
       />
     )
   }
 
-  const [profileRes, settingsRes] = await Promise.all([
+  const [profileRes, settingsRes, balanceRes] = await Promise.all([
     supabase
       .from('users')
       .select('id, is_anonymous, email, username, username_changed_at, display_name, preferred_name, tone_preference, reduced_motion, onesignal_player_id')
@@ -41,10 +42,16 @@ export default async function YouPage() {
       .select('*')
       .eq('user_id', user.id)
       .maybeSingle(),
+    supabase
+      .from('users')
+      .select('sparks_balance')
+      .eq('id', user.id)
+      .single(),
   ])
 
-  const profile  = profileRes.data  as UserFullProfile | null
-  const settings = (settingsRes.data ?? { user_id: user.id, ...DEFAULT_SETTINGS }) as UserSettings
+  const profile       = profileRes.data  as UserFullProfile | null
+  const settings      = (settingsRes.data ?? { user_id: user.id, ...DEFAULT_SETTINGS }) as UserSettings
+  const sparksBalance = balanceRes.data?.sparks_balance ?? 0
 
   // Backfill email from auth if not yet in users table
   const resolvedProfile: UserFullProfile = profile ?? {
@@ -60,5 +67,5 @@ export default async function YouPage() {
     onesignal_player_id: null,
   }
 
-  return <SettingsScreen profile={resolvedProfile} settings={settings} />
+  return <SettingsScreen profile={resolvedProfile} settings={settings} sparksBalance={sparksBalance} />
 }

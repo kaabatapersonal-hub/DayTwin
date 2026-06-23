@@ -20,6 +20,7 @@ import { TrackingSheet }                from '@/components/tracking/TrackingShee
 import { FocusSheet }                   from '@/components/focus/FocusSheet'
 import { FocusScreen }                  from '@/components/focus/FocusScreen'
 import { FocusComplete }                from '@/components/focus/FocusComplete'
+import { MotivationCard }              from './MotivationCard'
 import { useTasks }                     from '@/hooks/useTasks'
 import { useIntention }                 from '@/hooks/useIntention'
 import { useTodayHabits }               from '@/hooks/useTodayHabits'
@@ -28,7 +29,7 @@ import { useMood }                      from '@/hooks/useMood'
 import { useReflection }                from '@/hooks/useReflection'
 import type {
   Task, Intention, TodayHabit, Reflection, MoodLog, CoachData,
-  NewMoodLog, NewReflection, FocusSession,
+  NewMoodLog, NewReflection, FocusSession, MotivationCard as MotivationCardType,
 } from '@/types'
 import type { TonePreference } from '@/lib/copy'
 
@@ -51,6 +52,7 @@ interface TodayScreenProps {
   tonePreference?:           TonePreference
   userId:                    string
   initialSparksBalance:      number
+  motivationCard?:           MotivationCardType | null
 }
 
 export function TodayScreen({
@@ -67,6 +69,7 @@ export function TodayScreen({
   tonePreference = 'warm',
   userId,
   initialSparksBalance,
+  motivationCard,
 }: TodayScreenProps) {
   const {
     timeBlocked, quick,
@@ -241,6 +244,7 @@ export function TodayScreen({
 
       <div className="flex-1 flex flex-col px-4 pb-28">
         <CoachCard data={coachData} tonePreference={tonePreference} />
+        {motivationCard && <MotivationCard card={motivationCard} />}
         <MoodCheckIn moods={moods} onLog={handleMoodLog} />
 
         <AnimatePresence>

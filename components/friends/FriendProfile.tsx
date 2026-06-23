@@ -6,6 +6,8 @@ import { shortWeekday, todayISO }               from '@/lib/format'
 import { growthLevelInfo }                     from '@/lib/sparks'
 import { AvatarInitials }                                       from './FriendList'
 import { CreateChallengeSheet }                                 from '@/components/challenges/CreateChallengeSheet'
+import { SendSparksSheet }                                      from './SendSparksSheet'
+import { createClient }                                         from '@/lib/supabase/client'
 
 interface FriendProfileProps {
   friend:    FriendView
@@ -27,6 +29,8 @@ export function FriendProfile({ friend, onClose, onRemoved }: FriendProfileProps
   const [error,        setError]        = useState<string | null>(null)
   const [showActions,  setShowActions]  = useState(false)
   const [showChallenge, setShowChallenge] = useState(false)
+  const [showGift,     setShowGift]     = useState(false)
+  const [senderBalance, setSenderBalance] = useState(0)
   const [acting,       setActing]       = useState(false)
   const [actionError,  setActionError]  = useState<string | null>(null)
 
@@ -63,6 +67,19 @@ export function FriendProfile({ friend, onClose, onRemoved }: FriendProfileProps
     } finally {
       setActing(false)
     }
+  }
+
+  async function openGiftSheet() {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data } = await supabase
+      .from('users')
+      .select('sparks_balance')
+      .eq('id', user.id)
+      .single()
+    setSenderBalance(data?.sparks_balance ?? 0)
+    setShowGift(true)
   }
 
   async function handleBlock() {
@@ -180,11 +197,17 @@ export function FriendProfile({ friend, onClose, onRemoved }: FriendProfileProps
         </div>
       )}
 
-      {/* Challenge FAB */}
-      <div className="fixed bottom-8 left-0 right-0 px-5">
+      {/* Action buttons */}
+      <div className="fixed bottom-8 left-0 right-0 px-5 flex gap-3">
+        <button
+          onClick={openGiftSheet}
+          className="flex-1 py-4 rounded-2xl bg-white/[0.08] text-white font-body font-semibold text-base active:scale-[0.98] transition-transform"
+        >
+          ⚡ Send Sparks
+        </button>
         <button
           onClick={() => setShowChallenge(true)}
-          className="w-full py-4 rounded-2xl bg-teal text-background font-body font-semibold text-base active:scale-[0.98] transition-transform"
+          className="flex-1 py-4 rounded-2xl bg-teal text-background font-body font-semibold text-base active:scale-[0.98] transition-transform"
         >
           Challenge
         </button>
@@ -196,6 +219,20 @@ export function FriendProfile({ friend, onClose, onRemoved }: FriendProfileProps
           friendId={friend.user_id}
           friendName={friend.display_name ?? friend.username ?? 'your friend'}
           onClose={() => setShowChallenge(false)}
+        />
+      )}
+
+      {/* Send Sparks sheet */}
+      {showGift && (
+        <SendSparksSheet
+          recipientId={friend.user_id}
+          recipientName={friend.display_name ?? friend.username ?? 'your friend'}
+          senderBalance={senderBalance}
+          onClose={() => setShowGift(false)}
+          onSent={(newBalance) => {
+            setSenderBalance(newBalance)
+            setShowGift(false)
+          }}
         />
       )}
 

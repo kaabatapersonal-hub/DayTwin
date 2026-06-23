@@ -112,6 +112,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create challenge' }, { status: 500 })
     }
 
+    // Deduct entry cost for the creator before adding them as participant.
+    // This is done in the API route (not a trigger) so the client gets a
+    // meaningful "insufficient balance" error before the challenge is committed.
+    const cost = entry_cost_sparks ?? 0
+    if (cost > 0) {
+      const { data: deductResult, error: deductError } = await supabase.rpc('deduct_sparks', {
+        p_user_id:   user.id,
+        p_amount:    cost,
+        p_reason:    'challenge_entry',
+        p_item_type: 'challenge',
+        p_item_id:   challenge.id,
+      })
+
+      if (deductError || !deductResult?.success) {
+        // Roll back the challenge — no Sparks were deducted yet
+        await supabase.from('challenges').delete().eq('id', challenge.id)
+        const shortfall = deductResult?.shortfall as number | undefined
+        const msg = shortfall
+          ? `You need ${shortfall} more Sparks to create this challenge`
+          : 'Insufficient Sparks balance'
+        return NextResponse.json({ error: msg }, { status: 402 })
+      }
+
+      // Update pool with creator's entry
+      await supabase
+        .from('challenges')
+        .update({ pool_total_sparks: cost })
+        .eq('id', challenge.id)
+    }
+
     // Add creator as first participant — trigger fires but doesn't activate (only 1 participant)
     const { error: participantError } = await supabase
       .from('challenge_participants')

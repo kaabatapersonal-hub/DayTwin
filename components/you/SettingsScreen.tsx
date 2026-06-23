@@ -468,7 +468,7 @@ function AppearanceSection() {
 
 // ── Account section ───────────────────────────────────────────────────────────
 
-function AccountSection({ isAnonymous }: { isAnonymous: boolean }) {
+function AccountSection({ isAnonymous, sparksBalance }: { isAnonymous: boolean; sparksBalance: number }) {
   const supabase  = createClient()
   const router    = useRouter()
   const [confirm, setConfirm]   = useState(false)
@@ -498,6 +498,21 @@ function AccountSection({ isAnonymous }: { isAnonymous: boolean }) {
     <div className="mb-8">
       <SectionHeader label="Account" />
       <Card>
+        <SettingRow
+          label="Shop"
+          sub="Themes, sounds, and more"
+          onPress={() => router.push('/you/shop')}
+          right={
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-body text-gold tabular-nums">⚡ {sparksBalance.toLocaleString()}</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-white/30">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </div>
+          }
+        />
+        <Divider />
         <SettingRow
           label="Sparks history"
           sub="See all your earned and reversed Sparks"
@@ -547,11 +562,12 @@ function AccountSection({ isAnonymous }: { isAnonymous: boolean }) {
 // ── Main export ───────────────────────────────────────────────────────────────
 
 interface SettingsScreenProps {
-  profile:  UserFullProfile | null
-  settings: UserSettings
+  profile:       UserFullProfile | null
+  settings:      UserSettings
+  sparksBalance: number
 }
 
-export function SettingsScreen({ profile, settings }: SettingsScreenProps) {
+export function SettingsScreen({ profile, settings, sparksBalance }: SettingsScreenProps) {
   return (
     <div className="min-h-screen bg-[#080808] pb-32">
       {/* Header */}
@@ -565,7 +581,7 @@ export function SettingsScreen({ profile, settings }: SettingsScreenProps) {
       <ToneSection initial={profile?.tone_preference ?? 'warm'} />
       <NotificationsSection initial={settings} />
       <AppearanceSection />
-      <AccountSection isAnonymous={profile?.is_anonymous ?? true} />
+      <AccountSection isAnonymous={profile?.is_anonymous ?? true} sparksBalance={sparksBalance} />
     </div>
   )
 }

@@ -12,6 +12,7 @@ import { fetchCoachData }         from '@/lib/coach'
 import { fetchActiveFocusSession } from '@/lib/focus-sessions'
 import { TodayScreen }            from '@/components/today/TodayScreen'
 import { todayISO }               from '@/lib/format'
+import type { MotivationCard }    from '@/types'
 
 // cache() deduplicates calls within a single render pass — if any child
 // Server Component re-requests the same data, only one DB round-trip fires.
@@ -78,13 +79,40 @@ export default async function TodayPage() {
     goalTitle: null, goalProgressPct: null, topTaskTitle: null,
   }))
 
-  const { data: activeGoalRow } = await supabase
-    .from('goals')
-    .select('id')
-    .eq('status', 'active')
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
+  const [activeGoalRow, settingsRow] = await Promise.all([
+    supabase
+      .from('goals')
+      .select('id')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(r => r.data),
+    supabase
+      .from('user_settings')
+      .select('active_motivation_pack_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(r => r.data),
+  ])
+
+  // Compute today's motivation card (deterministic from date, rotates daily)
+  let motivationCard: MotivationCard | null = null
+  if (settingsRow?.active_motivation_pack_id) {
+    const { data: pack } = await supabase
+      .from('motivation_packs')
+      .select('content')
+      .eq('id', settingsRow.active_motivation_pack_id)
+      .single()
+    if (pack?.content) {
+      const cards = pack.content as MotivationCard[]
+      const d = new Date(date)
+      const dayOfYear = Math.floor(
+        (d.getTime() - new Date(d.getFullYear(), 0, 0).getTime()) / 86400000
+      )
+      motivationCard = cards[dayOfYear % cards.length] ?? null
+    }
+  }
 
   return (
     <TodayScreen
@@ -101,6 +129,7 @@ export default async function TodayPage() {
       tonePreference={tonePreference}
       userId={user.id}
       initialSparksBalance={profile?.sparks_balance ?? 0}
+      motivationCard={motivationCard}
     />
   )
 }
