@@ -28,8 +28,10 @@ select {
   font-size: 16px;
 }
 
-/* Remove the 300ms tap delay and double-tap zoom on interactive elements. */
-button, a, input, textarea, select {
+/* Remove the 300ms tap delay on every element, not just interactive ones.
+   The universal selector catches custom tap targets (divs, spans) that
+   buttons/links don't cover. */
+*, *::before, *::after {
   touch-action: manipulation;
 }
 

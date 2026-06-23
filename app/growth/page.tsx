@@ -1,3 +1,4 @@
+import { cache }                   from 'react'
 import { createClient }            from '@/lib/supabase/server'
 import { fetchGoals }              from '@/lib/goals'
 import { fetchProjects }           from '@/lib/projects'
@@ -7,6 +8,13 @@ import { fetchWeeklyReviews, fetchHeatmapData } from '@/lib/weekly-review'
 import { getWeekStart, todayISO }  from '@/lib/format'
 import { GrowthScreen }            from '@/components/growth/GrowthScreen'
 import type { UserBadge, HeatmapDay } from '@/types'
+
+const getCachedGoals       = cache(fetchGoals)
+const getCachedProjects    = cache(fetchProjects)
+const getCachedReflections = cache(fetchAllReflections)
+const getCachedWeeklySummary = cache(fetchWeeklySummary)
+const getCachedReviews     = cache(fetchWeeklyReviews)
+const getCachedHeatmap     = cache(fetchHeatmapData)
 
 export default async function GrowthPage() {
   const supabase  = await createClient()
@@ -43,12 +51,12 @@ export default async function GrowthPage() {
     goals, projects, reflections, weeklySummary,
     reviews, heatmapRaw, badgesRaw,
   ] = await Promise.all([
-    fetchGoals(supabase, 'all'),
-    fetchProjects(supabase, 'all'),
-    fetchAllReflections(supabase),
-    fetchWeeklySummary(supabase, weekStart),
-    fetchWeeklyReviews(supabase),
-    fetchHeatmapData(supabase, user.id),
+    getCachedGoals(supabase, 'all'),
+    getCachedProjects(supabase, 'all'),
+    getCachedReflections(supabase),
+    getCachedWeeklySummary(supabase, weekStart),
+    getCachedReviews(supabase),
+    getCachedHeatmap(supabase, user.id),
     supabase
       .from('user_badges')
       .select('user_id, badge_id, earned_at, badge:badges(id, name, description, icon, rarity, criteria)')

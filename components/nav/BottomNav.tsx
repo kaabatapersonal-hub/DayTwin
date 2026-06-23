@@ -1,7 +1,10 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useEffect }      from 'react'
+import Link               from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
+
+const TAB_ROUTES = ['/today', '/habits', '/growth', '/friends'] as const
 
 interface NavItemProps {
   href:    string
@@ -14,6 +17,7 @@ function NavItem({ href, label, active, icon }: NavItemProps) {
   return (
     <Link
       href={href}
+      prefetch={true}
       className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 transition-colors ${
         active ? 'text-teal' : 'text-white/30'
       }`}
@@ -26,6 +30,15 @@ function NavItem({ href, label, active, icon }: NavItemProps) {
 
 export function BottomNav() {
   const pathname = usePathname()
+  const router   = useRouter()
+
+  // Prefetch all four tab routes on mount so data starts streaming the moment
+  // the app loads, not waiting for the first tap.
+  useEffect(() => {
+    for (const route of TAB_ROUTES) {
+      router.prefetch(route)
+    }
+  }, [router])
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 flex bg-[#0c0c0c]/95 backdrop-blur-sm border-t border-white/[0.06] pb-safe-bottom z-30">
