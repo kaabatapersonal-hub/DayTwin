@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="#080808"/>
+
+  <!-- Day — solid circle (top) -->
+  <circle cx="256" cy="190" r="82" fill="none" stroke="#2DD4BF" stroke-width="10"/>
+  <circle cx="256" cy="190" r="30" fill="#2DD4BF"/>
+
+  <!-- Mirror line -->
+  <line x1="108" y1="300" x2="404" y2="300" stroke="#2DD4BF" stroke-width="2.5" opacity="0.4"/>
+
+  <!-- Twin — reflected ellipse (bottom), faded -->
+  <ellipse cx="256" cy="342" rx="82" ry="28" fill="none" stroke="#2DD4BF" stroke-width="10" opacity="0.28"/>
+  <ellipse cx="256" cy="342" rx="30" ry="10" fill="#2DD4BF" opacity="0.28"/>
+</svg>
