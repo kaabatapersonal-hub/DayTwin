@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { buildCoachMessage } from '@/lib/copy'
+import { buildCoachMessage, type TonePreference } from '@/lib/copy'
 import type { CoachData } from '@/types'
 
 interface CoachCardProps {
-  data: CoachData
+  data:            CoachData
+  tonePreference?: TonePreference
 }
 
 /**
@@ -18,7 +19,7 @@ interface CoachCardProps {
  *
  * Copy is built from real data via lib/copy.ts — no generic platitudes.
  */
-export function CoachCard({ data }: CoachCardProps) {
+export function CoachCard({ data, tonePreference = 'warm' }: CoachCardProps) {
   const [visible, setVisible] = useState(true)
 
   useEffect(() => {
@@ -28,7 +29,7 @@ export function CoachCard({ data }: CoachCardProps) {
 
   if (!visible) return null
 
-  const message = buildCoachMessage(data)
+  const message = buildCoachMessage(data, tonePreference)
 
   return (
     <div className="bg-white/[0.04] rounded-2xl px-4 py-4 mb-4 border border-white/[0.06]">

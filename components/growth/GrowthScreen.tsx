@@ -10,6 +10,7 @@ import { EvidenceOfGrowth }                   from './EvidenceOfGrowth'
 import { WeeklyTimeSummary }                  from '@/components/tracking/WeeklyTimeSummary'
 import { ConsistencyHeatmap }                 from './ConsistencyHeatmap'
 import { WeeklyReviewCard }                   from './WeeklyReviewCard'
+import { GrowthLevelCard }                    from './GrowthLevelCard'
 import { MilestoneCelebration }               from './MilestoneCelebration'
 import { BadgesList }                         from './BadgesList'
 import { getWeekStart, todayISO }             from '@/lib/format'
@@ -27,6 +28,7 @@ interface GrowthScreenProps {
   initialBadges:       UserBadge[]
   heatmapData:         HeatmapDay[]
   tonePreference:      'warm' | 'direct' | 'hype'
+  sparksLifetime:      number
 }
 
 /** Local storage key for tracking which badge celebrations have been dismissed. */
@@ -60,7 +62,7 @@ function markBadgeSeen(badgeId: string): void {
  */
 export function GrowthScreen({
   initialGoals, projectCountsByGoal, reflections, weeklySummary,
-  initialReviews, initialBadges, heatmapData, tonePreference,
+  initialReviews, initialBadges, heatmapData, tonePreference, sparksLifetime,
 }: GrowthScreenProps) {
   const { goals, add, error } = useGoals(initialGoals)
   const [showForm, setShowForm] = useState(false)
@@ -180,6 +182,9 @@ export function GrowthScreen({
           onGenerate={handleGenerate}
           generating={generating}
         />
+
+        {/* Growth level + Sparks progress */}
+        <GrowthLevelCard sparksLifetime={sparksLifetime} />
 
         {/* Achievements — badges earned so far */}
         <BadgesList badges={initialBadges} />

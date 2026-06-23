@@ -1,67 +1,84 @@
 /**
- * DayTwin — Warm preset copy templates.
+ * DayTwin — Copy templates, all three tone presets.
  *
  * Every user-facing string in the emotional layer (coach card, hard day overlay,
  * welcome back screen, score ring label, reflection confirmation) lives here.
- * Editing this file is the single place to change copy — nothing should be
- * hardcoded in components. Tone preset support (direct / hype) stays in V2
- * when the settings screen ships; all templates below are Warm.
+ * Editing this file is the single place to change copy.
  *
  * Rules from voice-and-tone-guide.md:
  *  - Reference something real the user did — never generic platitudes
  *  - No guilt, no shame, no "you should have"
- *  - Present tense, calm encouragement
+ *  - Present tense; warm encourages, direct informs, hype energises
  */
 
-import type { CoachData } from '@/types'
+import type { CoachData, TonePreference } from '@/types'
+
+export type { TonePreference }
 
 // ── Morning Daily Coach ───────────────────────────────────────────────────────
 
+function fmtHours(h: number): string {
+  return h % 1 === 0 ? h.toString() : h.toFixed(1)
+}
+
 /**
  * Builds the coach card sentence from real computed data.
- * Gracefully omits any sentence whose data is missing — never shows
- * a template placeholder like "{X}h" to the user.
+ * Gracefully omits any sentence whose data is missing.
+ * Backward-compatible: tone defaults to 'warm'.
  */
-export function buildCoachMessage(data: CoachData): string {
+export function buildCoachMessage(data: CoachData, tone: TonePreference = 'warm'): string {
   const { preferredName, focusHoursWeek, goalTitle, goalProgressPct, topTaskTitle } = data
 
-  const greeting = preferredName ? `Morning, ${preferredName}.` : 'Morning.'
-  const parts: string[] = [greeting]
-
-  // Focus hours: only shown when actual time has been logged this week
-  if (focusHoursWeek > 0) {
-    const hours = focusHoursWeek % 1 === 0
-      ? focusHoursWeek.toString()
-      : focusHoursWeek.toFixed(1)
-    parts.push(`You logged ${hours}h of focus this week.`)
+  if (tone === 'direct') {
+    const parts: string[] = []
+    if (preferredName) parts.push(`${preferredName}.`)
+    if (focusHoursWeek > 0) parts.push(`${fmtHours(focusHoursWeek)}h focus this week.`)
+    if (topTaskTitle) parts.push(`Priority: ${topTaskTitle}.`)
+    if (parts.length === 0) parts.push('Pick one task and start.')
+    return parts.join(' ')
   }
 
-  // Goal progress: only shown when a goal exists and has meaningful progress
+  if (tone === 'hype') {
+    const nameStr = preferredName ? `, ${preferredName}` : ''
+    const parts: string[] = [`Let's go${nameStr}!`]
+    if (focusHoursWeek > 0) parts.push(`${fmtHours(focusHoursWeek)}h of focus already — you're on fire.`)
+    if (goalTitle && goalProgressPct !== null && goalProgressPct > 0) {
+      parts.push(`${goalProgressPct}% to ${goalTitle} — keep pushing.`)
+    }
+    if (topTaskTitle) parts.push(`Today: ${topTaskTitle}. Make it happen.`)
+    if (parts.length === 1) parts.push("What's the move today? Make it count.")
+    return parts.join(' ')
+  }
+
+  // warm (original)
+  const greeting = preferredName ? `Morning, ${preferredName}.` : 'Morning.'
+  const parts: string[] = [greeting]
+  if (focusHoursWeek > 0) parts.push(`You logged ${fmtHours(focusHoursWeek)}h of focus this week.`)
   if (goalTitle && goalProgressPct !== null && goalProgressPct > 0) {
     parts.push(`You're ${goalProgressPct}% of the way to ${goalTitle}.`)
   }
-
-  // Top task: only shown when there's an incomplete task for today
-  if (topTaskTitle) {
-    parts.push(`Today's priority: ${topTaskTitle}.`)
-  }
-
-  // If only the greeting was added (no data yet): add a gentle nudge
-  if (parts.length === 1) {
-    parts.push("What's the one thing that would make today count?")
-  }
-
+  if (topTaskTitle) parts.push(`Today's priority: ${topTaskTitle}.`)
+  if (parts.length === 1) parts.push("What's the one thing that would make today count?")
   return parts.join(' ')
 }
 
 // ── Score ring labels ─────────────────────────────────────────────────────────
 
-/**
- * Returns a one-line Warm preset label for the score ring based on progress.
- * References no tasks overdue, no missed habits — only forward-looking or
- * acknowledging effort.
- */
-export function scoreLabel(pct: number): string {
+export function scoreLabel(pct: number, tone: TonePreference = 'warm'): string {
+  if (tone === 'direct') {
+    if (pct === 100) return 'Full score. Done for today.'
+    if (pct >= 80)   return `${pct}% — almost there.`
+    if (pct >= 50)   return `${pct}% complete.`
+    if (pct >= 20)   return `${pct}% — keep going.`
+    return 'Just getting started.'
+  }
+  if (tone === 'hype') {
+    if (pct === 100) return "PERFECT DAY. Everything done — you crushed it!"
+    if (pct >= 80)   return "Almost a perfect day — push through!"
+    if (pct >= 50)   return "Over halfway! You've got this."
+    if (pct >= 20)   return 'Building momentum — keep stacking wins!'
+    return "Let's go — every win counts from here!"
+  }
   if (pct === 100) return "That's everything for today. You showed up, and it counted."
   if (pct >= 80)   return 'Almost there — strong day.'
   if (pct >= 50)   return 'Good progress today.'
@@ -69,7 +86,30 @@ export function scoreLabel(pct: number): string {
   return "Today's just getting started."
 }
 
+// ── Welcome Back ──────────────────────────────────────────────────────────────
+
+export function getWelcomeBackCopy(tone: TonePreference = 'warm'): { body: string; cta: string } {
+  if (tone === 'direct') return {
+    body: "You've been away. Pick one task and get started.",
+    cta:  'Get started',
+  }
+  if (tone === 'hype') return {
+    body: "You're back — let's make this one count. One win and you're back in the rhythm.",
+    cta:  "Let's go",
+  }
+  return {
+    body: "Good to see you again. No catching up needed — let's just start with one thing today.",
+    cta:  'Start with one win',
+  }
+}
+
 // ── Hard Day overlay ──────────────────────────────────────────────────────────
+
+export function getHardDayCopy(tone: TonePreference = 'warm'): { heading: string } {
+  if (tone === 'direct') return { heading: "Here's your progress so far. Keep going." }
+  if (tone === 'hype')   return { heading: "Hard days are where real progress lives. Look what you've built." }
+  return { heading: "It's okay that today is hard. Here's what you've already built — look how far you've come." }
+}
 
 export const HARD_DAY_HEADING =
   "It's okay that today is hard. Here's what you've already built — look how far you've come."
@@ -79,17 +119,15 @@ export function daysShownUpLabel(count: number): string {
   return `You showed up ${count} out of the last 30 days.`
 }
 
-// ── Welcome Back ──────────────────────────────────────────────────────────────
-
 /** Days-away line: "3 days since your last visit." */
 export function daysAwayLabel(days: number): string {
   if (days === 1) return 'You were away for a day.'
   return `${days} days since your last visit.`
 }
 
+// Kept for backward compat — prefer getWelcomeBackCopy(tone)
 export const WELCOME_BACK_BODY =
   "Good to see you again. No catching up needed — let's just start with one thing today."
-
 export const WELCOME_BACK_CTA = 'Start with one win'
 
 // ── Reflection ────────────────────────────────────────────────────────────────

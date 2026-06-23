@@ -43,6 +43,9 @@ export default async function TodayPage() {
         coachData={{ preferredName: null, focusHoursWeek: 0, goalTitle: null, goalProgressPct: null, topTaskTitle: null }}
         activeGoalId={null}
         initialActiveFocusSession={null}
+        tonePreference="warm"
+        userId=""
+        initialSparksBalance={0}
       />
     )
   }
@@ -54,6 +57,8 @@ export default async function TodayPage() {
     const days = daysSinceLastActive(profile.last_active_at!)
     redirect(`/welcome-back?days=${days}`)
   }
+
+  const tonePreference = (profile?.tone_preference ?? 'warm') as 'warm' | 'direct' | 'hype'
 
   const [tasks, intention, todayHabits, todayScore, reflection, todayMoods, activeFocusSession] =
     await Promise.all([
@@ -93,6 +98,9 @@ export default async function TodayPage() {
       coachData={coachData}
       activeGoalId={activeGoalRow?.id ?? null}
       initialActiveFocusSession={activeFocusSession}
+      tonePreference={tonePreference}
+      userId={user.id}
+      initialSparksBalance={profile?.sparks_balance ?? 0}
     />
   )
 }

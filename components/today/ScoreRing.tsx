@@ -1,9 +1,10 @@
-import { scoreLabel } from '@/lib/copy'
+import { scoreLabel, type TonePreference } from '@/lib/copy'
 
 interface ScoreRingProps {
-  pct:      number   // 0–100
-  size?:    number   // outer diameter in px; defaults to 80
-  compact?: boolean  // when true: tiny ring for the header, no label
+  pct:            number           // 0–100
+  size?:          number           // outer diameter in px; defaults to 80
+  compact?:       boolean          // when true: tiny ring for the header, no label
+  tonePreference?: TonePreference
 }
 
 /**
@@ -13,7 +14,7 @@ interface ScoreRingProps {
  *
  * Colour scale: white/dim for 0–19%, gold for 20–79%, teal for 80–100%.
  */
-export function ScoreRing({ pct, size = 80, compact = false }: ScoreRingProps) {
+export function ScoreRing({ pct, size = 80, compact = false, tonePreference = 'warm' }: ScoreRingProps) {
   const stroke = compact ? 3 : 5
   const r      = (size - stroke) / 2
   const circ   = 2 * Math.PI * r
@@ -61,7 +62,7 @@ export function ScoreRing({ pct, size = 80, compact = false }: ScoreRingProps) {
         </div>
       </div>
       <p className="text-xs font-body text-center" style={{ color: 'rgba(255,255,255,0.45)', maxWidth: 160 }}>
-        {scoreLabel(pct)}
+        {scoreLabel(pct, tonePreference)}
       </p>
     </div>
   )

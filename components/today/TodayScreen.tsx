@@ -30,6 +30,7 @@ import type {
   Task, Intention, TodayHabit, Reflection, MoodLog, CoachData,
   NewMoodLog, NewReflection, FocusSession,
 } from '@/types'
+import type { TonePreference } from '@/lib/copy'
 
 interface FormState {
   mode: FormMode
@@ -46,7 +47,10 @@ interface TodayScreenProps {
   initialTodayMoods:         MoodLog[]
   coachData:                 CoachData
   activeGoalId:              string | null
-  initialActiveFocusSession: FocusSession | null  // non-null if app reopened mid-session
+  initialActiveFocusSession: FocusSession | null
+  tonePreference?:           TonePreference
+  userId:                    string
+  initialSparksBalance:      number
 }
 
 export function TodayScreen({
@@ -60,6 +64,9 @@ export function TodayScreen({
   coachData,
   activeGoalId,
   initialActiveFocusSession,
+  tonePreference = 'warm',
+  userId,
+  initialSparksBalance,
 }: TodayScreenProps) {
   const {
     timeBlocked, quick,
@@ -155,8 +162,22 @@ export function TodayScreen({
     triggerScoreRecalc()
   }
 
+  function maybeRequestNotifPermission() {
+    // Never ask before the first task completion; never ask twice
+    if (typeof window === 'undefined') return
+    if (localStorage.getItem('daytwin_notif_prompted')) return
+    localStorage.setItem('daytwin_notif_prompted', '1')
+    const win = window as typeof window & {
+      OneSignalDeferred?: Array<(os: { Notifications: { requestPermission: () => void } }) => void>
+    }
+    if (win.OneSignalDeferred) {
+      win.OneSignalDeferred.push((os) => { os.Notifications.requestPermission() })
+    }
+  }
+
   async function handleToggleComplete(task: Task) {
     await toggleComplete(task)
+    if (!task.completed) maybeRequestNotifPermission()
     triggerScoreRecalc()
   }
 
@@ -210,10 +231,16 @@ export function TodayScreen({
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <TopBar date={date} scorePct={score} onHardDay={() => setShowHardDay(true)} />
+      <TopBar
+        date={date}
+        scorePct={score}
+        onHardDay={() => setShowHardDay(true)}
+        userId={userId}
+        sparksBalance={initialSparksBalance}
+      />
 
       <div className="flex-1 flex flex-col px-4 pb-28">
-        <CoachCard data={coachData} />
+        <CoachCard data={coachData} tonePreference={tonePreference} />
         <MoodCheckIn moods={moods} onLog={handleMoodLog} />
 
         <AnimatePresence>
@@ -270,7 +297,7 @@ export function TodayScreen({
         )}
 
         <div className="mt-8 flex justify-center">
-          <ScoreRing pct={score} size={88} />
+          <ScoreRing pct={score} size={88} tonePreference={tonePreference} />
         </div>
 
         <div className="mt-6">
@@ -345,7 +372,11 @@ export function TodayScreen({
 
       {/* Full-screen overlays */}
       {showHardDay && (
-        <HardDayOverlay activeGoalId={activeGoalId} onClose={() => setShowHardDay(false)} />
+        <HardDayOverlay
+          activeGoalId={activeGoalId}
+          onClose={() => setShowHardDay(false)}
+          tonePreference={tonePreference}
+        />
       )}
       {focusSession && (
         <FocusScreen

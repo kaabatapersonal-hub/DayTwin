@@ -8,12 +8,13 @@ import { fetchGoal } from '@/lib/goals'
 import { loadFutureMe, type FutureMeRecord } from '@/lib/future-me'
 import { formatDuration } from '@/lib/format'
 import {
-  HARD_DAY_HEADING, daysShownUpLabel, FUTURE_ME_FALLBACK,
+  getHardDayCopy, daysShownUpLabel, FUTURE_ME_FALLBACK, type TonePreference,
 } from '@/lib/copy'
 
 interface HardDayOverlayProps {
-  activeGoalId: string | null   // most recently active goal — pre-fetched by today page
-  onClose:      () => void
+  activeGoalId:    string | null
+  onClose:         () => void
+  tonePreference?: TonePreference
 }
 
 interface OverlayData {
@@ -38,7 +39,7 @@ interface OverlayData {
  * Future Me playback is IndexedDB only. The network tab shows zero outbound
  * requests when it plays — by design, see lib/future-me.ts.
  */
-export function HardDayOverlay({ activeGoalId, onClose }: HardDayOverlayProps) {
+export function HardDayOverlay({ activeGoalId, onClose, tonePreference = 'warm' }: HardDayOverlayProps) {
   const [data,    setData]    = useState<OverlayData | null>(null)
   const [loading, setLoading] = useState(true)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
@@ -112,9 +113,8 @@ export function HardDayOverlay({ activeGoalId, onClose }: HardDayOverlayProps) {
       </div>
 
       <div className="flex-1 px-5 pb-safe-bottom pb-12 space-y-8">
-        {/* Heading — from Warm preset */}
         <p className="text-base font-body text-white/70 leading-relaxed">
-          {HARD_DAY_HEADING}
+          {getHardDayCopy(tonePreference).heading}
         </p>
 
         {loading && (

@@ -3,6 +3,8 @@
  * Field names and types match database-schema.md exactly — do not rename.
  */
 
+export type TonePreference = 'warm' | 'direct' | 'hype'
+
 export type TaskCategory = 'deep_work' | 'study' | 'health' | 'admin' | 'personal'
 export type TaskPriority  = 'low' | 'medium' | 'high'
 
@@ -175,7 +177,7 @@ export interface UserProfile {
   display_name:     string | null
   timezone:         string
   last_active_at:   string | null  // ISO timestamp; drives Welcome Back screen
-  tone_preference:  'warm' | 'direct' | 'hype'
+  tone_preference:  TonePreference
   sparks_balance:   number
   sparks_lifetime:  number
 }
@@ -513,4 +515,50 @@ export interface UserBadge {
 export interface HeatmapDay {
   date:      string         // "YYYY-MM-DD"
   score_pct: number | null  // null = no data (gray); 0–100 = active (teal gradient)
+}
+
+// ── Sparks ────────────────────────────────────────────────────────────────────
+
+/** Matches the `spark_transactions` table. */
+export interface SparkTransaction {
+  id:             string
+  user_id:        string
+  amount:         number          // positive = earn, negative = reversal
+  reason:         string
+  reference_type: string | null
+  reference_id:   string | null
+  created_at:     string
+}
+
+// ── Settings & You tab ────────────────────────────────────────────────────────
+
+/** Full profile row for the Settings/You tab — includes private fields not in UserProfile. */
+export interface UserFullProfile {
+  id:                   string
+  is_anonymous:         boolean
+  email:                string | null
+  username:             string | null
+  username_changed_at:  string | null  // ISO timestamp — edit locked 30 days after change
+  display_name:         string | null
+  preferred_name:       string | null
+  tone_preference:      TonePreference
+  reduced_motion:       boolean
+  onesignal_player_id:  string | null
+}
+
+/** Matches the `user_settings` table including new Session 10 columns. */
+export interface UserSettings {
+  user_id:                  string
+  notif_task_reminders:     boolean
+  notif_habit_risk:         boolean
+  notif_streak_risk:        boolean
+  notif_friend_activity:    boolean
+  notif_weekly_review:      boolean
+  notif_challenge_invites:  boolean
+  notif_score_updates:      boolean
+  notif_pact_miss:          boolean
+  morning_checkin_time:     string   // "HH:MM:SS"
+  evening_checkin_time:     string   // "HH:MM:SS"
+  notif_daily_count:        number
+  notif_last_sent_date:     string | null
 }

@@ -31,17 +31,23 @@ export default async function WelcomeBackPage({ searchParams }: Props) {
     redirect('/today')
   }
 
-  // Fetch top task for the "Start here" nudge card
-  const tasks = await fetchTodayTasks(supabase, date).catch(() => [])
+  const [tasks, toneRes] = await Promise.all([
+    fetchTodayTasks(supabase, date).catch(() => []),
+    supabase.from('users').select('tone_preference').eq('id', user.id).maybeSingle(),
+  ])
+
   const PRIORITY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 }
   const topTask = tasks
     .filter(t => !t.completed)
     .sort((a, b) => (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1))[0]
 
+  const tonePreference = (toneRes.data?.tone_preference ?? 'warm') as 'warm' | 'direct' | 'hype'
+
   return (
     <WelcomeBack
       daysAway={daysAway}
       topTaskTitle={topTask?.title ?? null}
+      tonePreference={tonePreference}
     />
   )
 }

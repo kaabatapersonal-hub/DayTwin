@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { touchLastActive } from '@/lib/users'
 import {
-  daysAwayLabel, WELCOME_BACK_BODY, WELCOME_BACK_CTA,
+  daysAwayLabel, getWelcomeBackCopy, type TonePreference,
 } from '@/lib/copy'
 
 interface WelcomeBackProps {
-  daysAway:     number
-  topTaskTitle: string | null  // highest-priority incomplete task for today, or null
+  daysAway:        number
+  topTaskTitle:    string | null
+  tonePreference?: TonePreference
 }
 
 /**
@@ -26,10 +27,11 @@ interface WelcomeBackProps {
  *
  * Copy is from the Warm preset in lib/copy.ts — no invented strings.
  */
-export function WelcomeBack({ daysAway, topTaskTitle }: WelcomeBackProps) {
+export function WelcomeBack({ daysAway, topTaskTitle, tonePreference = 'warm' }: WelcomeBackProps) {
   const router   = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
+  const { body: wbBody, cta: wbCta } = getWelcomeBackCopy(tonePreference)
 
   async function handleStart() {
     setLoading(true)
@@ -51,9 +53,8 @@ export function WelcomeBack({ daysAway, topTaskTitle }: WelcomeBackProps) {
           {daysAwayLabel(daysAway)}
         </p>
 
-        {/* Main welcome message — Warm preset */}
         <p className="text-xl font-heading font-semibold text-white leading-snug">
-          {WELCOME_BACK_BODY}
+          {wbBody}
         </p>
 
         {/* Top task nudge */}
@@ -75,7 +76,7 @@ export function WelcomeBack({ daysAway, topTaskTitle }: WelcomeBackProps) {
           disabled={loading}
           className="w-full py-4 rounded-2xl bg-teal text-background font-body font-medium text-base disabled:opacity-50 active:scale-[0.98] transition-transform"
         >
-          {loading ? 'Starting…' : WELCOME_BACK_CTA}
+          {loading ? 'Starting…' : wbCta}
         </button>
       </div>
     </div>

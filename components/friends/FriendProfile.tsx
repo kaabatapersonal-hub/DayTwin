@@ -2,7 +2,8 @@
 
 import { useState, useEffect }          from 'react'
 import type { FriendView, FriendProfileData, FriendScoreDay } from '@/types'
-import { growthLevel, shortWeekday, todayISO }                 from '@/lib/format'
+import { shortWeekday, todayISO }               from '@/lib/format'
+import { growthLevelInfo }                     from '@/lib/sparks'
 import { AvatarInitials }                                       from './FriendList'
 import { CreateChallengeSheet }                                 from '@/components/challenges/CreateChallengeSheet'
 
@@ -83,7 +84,8 @@ export function FriendProfile({ friend, onClose, onRemoved }: FriendProfileProps
     }
   }
 
-  const level = growthLevel(profile?.sparks_lifetime ?? friend.sparks_lifetime)
+  const sparksLt  = profile?.sparks_lifetime ?? friend.sparks_lifetime
+  const levelInfo = growthLevelInfo(sparksLt)
 
   return (
     <div className="fixed inset-0 z-50 bg-background flex flex-col overflow-y-auto">
@@ -129,8 +131,10 @@ export function FriendProfile({ friend, onClose, onRemoved }: FriendProfileProps
           <p className="text-sm font-body text-white/35 mb-2">@{friend.username}</p>
         )}
         <div className="flex items-center gap-1.5 bg-white/[0.06] px-3 py-1 rounded-full">
-          <span className="text-gold text-xs">⚡</span>
-          <span className="text-xs font-body text-white/60">Level {level}</span>
+          <span className="text-gold text-xs leading-none">⚡</span>
+          <span className="text-xs font-body text-white/60">
+            Level {levelInfo.level} — {levelInfo.label}
+          </span>
         </div>
       </div>
 

@@ -1,21 +1,24 @@
 import { formatDateDisplay } from '@/lib/format'
-import { ScoreRing } from './ScoreRing'
+import { ScoreRing }         from './ScoreRing'
+import { SparksBadge }       from './SparksBadge'
 
 interface TopBarProps {
-  date:       string  // ISO "YYYY-MM-DD"
-  scorePct:   number  // 0–100; drives the compact ring on the right
-  onHardDay:  () => void
+  date:           string  // ISO "YYYY-MM-DD"
+  scorePct:       number  // 0–100; drives the compact ring on the right
+  onHardDay:      () => void
+  userId:         string
+  sparksBalance:  number
 }
 
 /**
  * Today screen top bar.
  * Left:  DayTwin wordmark + date.
- * Right: compact score ring (32px) + heart button for the Hard Day overlay.
+ * Right: Sparks balance | compact score ring (32px) | heart button.
  *
  * The heart button is always visible and easy to reach — this is intentional.
  * On a hard day, someone shouldn't have to hunt for the way in.
  */
-export function TopBar({ date, scorePct, onHardDay }: TopBarProps) {
+export function TopBar({ date, scorePct, onHardDay, userId, sparksBalance }: TopBarProps) {
   return (
     <header className="flex items-center justify-between px-5 pt-safe-top pb-4">
       <div>
@@ -28,6 +31,8 @@ export function TopBar({ date, scorePct, onHardDay }: TopBarProps) {
       </div>
 
       <div className="flex items-center gap-3">
+        <SparksBadge initialBalance={sparksBalance} userId={userId} />
+
         {/* Compact score ring — always visible, updated reactively */}
         <ScoreRing pct={scorePct} size={32} compact />
 

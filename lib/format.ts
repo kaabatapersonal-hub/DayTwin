@@ -81,15 +81,15 @@ export function getWeekStart(isoDate: string): string {
  * and the upper levels are a genuine long-term aspiration.
  */
 export function growthLevel(sparksLifetime: number): number {
-  if (sparksLifetime >= 100000) return 10
-  if (sparksLifetime >= 50000)  return 9
-  if (sparksLifetime >= 20000)  return 8
-  if (sparksLifetime >= 10000)  return 7
-  if (sparksLifetime >= 5000)   return 6
-  if (sparksLifetime >= 2500)   return 5
-  if (sparksLifetime >= 1000)   return 4
-  if (sparksLifetime >= 500)    return 3
-  if (sparksLifetime >= 100)    return 2
+  if (sparksLifetime >= 10000) return 10
+  if (sparksLifetime >= 6000)  return 9
+  if (sparksLifetime >= 4000)  return 8
+  if (sparksLifetime >= 2500)  return 7
+  if (sparksLifetime >= 1500)  return 6
+  if (sparksLifetime >= 1000)  return 5
+  if (sparksLifetime >= 600)   return 4
+  if (sparksLifetime >= 300)   return 3
+  if (sparksLifetime >= 100)   return 2
   return 1
 }
 

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
 import { Inter, Fraunces } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 import { Providers }  from './providers'
 import { BottomNav }  from '@/components/nav/BottomNav'
@@ -28,14 +29,21 @@ const fraunces = Fraunces({
 })
 
 export const metadata: Metadata = {
-  title: 'DayTwin',
+  title:       'DayTwin',
   description: 'Your personal operating system',
+  manifest:    '/manifest.json',
+  appleWebApp: {
+    capable:       true,
+    statusBarStyle: 'black-translucent',
+    title:         'DayTwin',
+  },
 }
 
 export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  viewportFit: 'cover',
+  width:          'device-width',
+  initialScale:   1,
+  viewportFit:    'cover',
+  themeColor:     '#080808',
 }
 
 export default function RootLayout({
@@ -49,6 +57,13 @@ export default function RootLayout({
       <body className="bg-background text-white font-body antialiased">
         <Providers>{children}</Providers>
         <BottomNav />
+        {process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID && (
+          <Script
+            src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
+            defer
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   )

@@ -34,18 +34,19 @@ export default async function GrowthPage() {
         initialBadges={[]}
         heatmapData={[]}
         tonePreference="warm"
+        sparksLifetime={0}
       />
     )
   }
 
-  // Fetch tone preference for milestone copy personalisation
   const { data: userRow } = await supabase
     .from('users')
-    .select('tone_preference')
+    .select('tone_preference, sparks_lifetime')
     .eq('id', user.id)
     .maybeSingle()
 
-  const tonePreference = (userRow?.tone_preference ?? 'warm') as 'warm' | 'direct' | 'hype'
+  const tonePreference  = (userRow?.tone_preference ?? 'warm') as 'warm' | 'direct' | 'hype'
+  const sparksLifetime  = (userRow?.sparks_lifetime as number | null) ?? 0
 
   const [
     goals, projects, reflections, weeklySummary,
@@ -86,6 +87,7 @@ export default async function GrowthPage() {
       initialBadges={badgesRaw}
       heatmapData={heatmapData}
       tonePreference={tonePreference}
+      sparksLifetime={sparksLifetime}
     />
   )
 }
