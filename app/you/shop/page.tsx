@@ -8,7 +8,7 @@ export const metadata = { title: 'Shop — DayTwin' }
 export default async function ShopPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  if (!user) redirect('/today')
 
   // All fetches in parallel
   const [

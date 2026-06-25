@@ -12,7 +12,7 @@ export default async function ChallengeDetailPage({ params }: Props) {
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/onboarding')
+  if (!user) redirect('/today')
 
   const data = await fetchChallengeById(supabase, id)
   if (!data) notFound()

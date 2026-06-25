@@ -6,7 +6,7 @@ import { WeeklyReviewScreen }    from '@/components/growth/WeeklyReviewScreen'
 export default async function WeeklyReviewPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/onboarding')
+  if (!user) redirect('/today')
 
   const reviews = await fetchWeeklyReviews(supabase)
 

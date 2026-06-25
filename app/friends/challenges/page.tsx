@@ -6,7 +6,7 @@ import { ChallengesListScreen }     from '@/components/challenges/ChallengesList
 export default async function ChallengesPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/onboarding')
+  if (!user) redirect('/today')
 
   const [active, past] = await Promise.all([
     fetchMyChallenges(supabase),
