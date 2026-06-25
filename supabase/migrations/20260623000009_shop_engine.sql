@@ -20,10 +20,7 @@ CREATE TABLE IF NOT EXISTS themes (
   category       text          -- dark, nature, minimal, etc.
 );
 
-ALTER TABLE themes ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "themes_select_all"
-  ON themes FOR SELECT
-  USING (auth.uid() IS NOT NULL);
+-- RLS for themes was set in 20260620000001_rls.sql; no duplicate policy here.
 
 INSERT INTO themes (id, name, accent_hex, background_hex, cost_sparks, category) VALUES
   ('00000001-0000-0000-0000-000000000001', 'DayTwin',         '#2DD4BF', '#080808', 0,   NULL),
@@ -64,10 +61,7 @@ CREATE TABLE IF NOT EXISTS profile_items (
   cost_sparks  int  NOT NULL DEFAULT 0
 );
 
-ALTER TABLE profile_items ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "profile_items_select_all"
-  ON profile_items FOR SELECT
-  USING (auth.uid() IS NOT NULL);
+-- RLS for profile_items was set in 20260620000001_rls.sql; no duplicate policy here.
 
 INSERT INTO profile_items (id, type, name, asset_url, cost_sparks) VALUES
   -- Frames (ring effects applied around the avatar container)
@@ -113,10 +107,7 @@ CREATE TABLE IF NOT EXISTS motivation_packs (
   cost_sparks  int  NOT NULL DEFAULT 0
 );
 
-ALTER TABLE motivation_packs ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "motivation_packs_select_all"
-  ON motivation_packs FOR SELECT
-  USING (auth.uid() IS NOT NULL);
+-- RLS for motivation_packs was set in 20260620000001_rls.sql; no duplicate policy here.
 
 INSERT INTO motivation_packs (id, name, cost_sparks, content) VALUES
   ('00000003-0000-0000-0000-000000000001',
@@ -192,10 +183,7 @@ CREATE TABLE IF NOT EXISTS sound_packs (
   cost_sparks  int  NOT NULL DEFAULT 0
 );
 
-ALTER TABLE sound_packs ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "sound_packs_select_all"
-  ON sound_packs FOR SELECT
-  USING (auth.uid() IS NOT NULL);
+-- RLS for sound_packs was set in 20260620000001_rls.sql; no duplicate policy here.
 
 INSERT INTO sound_packs (id, name, audio_url, cost_sparks) VALUES
   ('00000004-0000-0000-0000-000000000001', 'Rain',         '/sounds/rain.mp3',         100),

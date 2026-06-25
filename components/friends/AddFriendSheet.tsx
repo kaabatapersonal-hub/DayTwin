@@ -12,6 +12,7 @@ type SearchState =
   | { phase: 'idle' }
   | { phase: 'searching' }
   | { phase: 'not_found' }
+  | { phase: 'claim_required' }
   | { phase: 'found'; user_id: string; display_name: string | null; username: string; avatar_url: string | null; friendship_status: string | null }
 
 /**
@@ -31,6 +32,10 @@ export function AddFriendSheet({ onClose, onSent }: AddFriendSheetProps) {
     setState({ phase: 'searching' })
     try {
       const res = await fetch(`/api/friends/search?username=${encodeURIComponent(username)}`)
+      if (res.status === 403) {
+        const body = await res.json() as { error?: string }
+        if (body.error === 'claim_account') { setState({ phase: 'claim_required' }); return }
+      }
       if (res.status === 404) { setState({ phase: 'not_found' }); return }
       if (!res.ok) { setState({ phase: 'not_found' }); return }
       const data = await res.json() as {
@@ -107,6 +112,15 @@ export function AddFriendSheet({ onClose, onSent }: AddFriendSheetProps) {
               <p className="text-sm font-body text-white/35 py-4 text-center">
                 No user found with that username
               </p>
+            )}
+
+            {state.phase === 'claim_required' && (
+              <div className="py-4 px-1">
+                <p className="text-sm font-body text-white/50 mb-1">Set a username first</p>
+                <p className="text-xs font-body text-white/30 leading-relaxed">
+                  Go to You → set your username so people can find you too, then come back to add friends.
+                </p>
+              </div>
             )}
 
             {state.phase === 'found' && (

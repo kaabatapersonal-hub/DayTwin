@@ -40,6 +40,9 @@ export function BottomNav() {
     }
   }, [router])
 
+  // Landing page has its own nav
+  if (pathname === '/') return null
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 flex bg-[#0c0c0c]/95 backdrop-blur-sm border-t border-white/[0.06] pb-safe-bottom z-30">
       <NavItem

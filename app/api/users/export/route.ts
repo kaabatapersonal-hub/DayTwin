@@ -15,6 +15,14 @@ export async function GET() {
 
   const uid = user.id
 
+  // habit_streaks has no user_id column — join via habits first, then fetch streak rows.
+  const { data: userHabits } = await supabase
+    .from('habits')
+    .select('id')
+    .eq('user_id', uid)
+
+  const habitIds = (userHabits ?? []).map(h => h.id)
+
   const [
     profileRes, settingsRes, tasksRes, intentionsRes,
     habitsRes, habitLogsRes, habitStreaksRes,
@@ -28,8 +36,9 @@ export async function GET() {
     supabase.from('intentions').select('*').eq('user_id', uid).order('date'),
     supabase.from('habits').select('*').eq('user_id', uid).order('created_at'),
     supabase.from('habit_logs').select('*').eq('user_id', uid).order('date'),
-    supabase.from('habit_streaks').select('*').eq('habit_id',
-      supabase.from('habits').select('id').eq('user_id', uid)),
+    habitIds.length > 0
+      ? supabase.from('habit_streaks').select('*').in('habit_id', habitIds)
+      : Promise.resolve({ data: [] }),
     supabase.from('goals').select('*').eq('user_id', uid).order('created_at'),
     supabase.from('projects').select('*').eq('user_id', uid).order('created_at'),
     supabase.from('reflections').select('*').eq('user_id', uid).order('date'),

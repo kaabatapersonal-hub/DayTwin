@@ -111,9 +111,6 @@ export function getHardDayCopy(tone: TonePreference = 'warm'): { heading: string
   return { heading: "It's okay that today is hard. Here's what you've already built — look how far you've come." }
 }
 
-export const HARD_DAY_HEADING =
-  "It's okay that today is hard. Here's what you've already built — look how far you've come."
-
 /** "You showed up N out of 30 days." — uses real count, never hardcoded. */
 export function daysShownUpLabel(count: number): string {
   return `You showed up ${count} out of the last 30 days.`
@@ -124,11 +121,6 @@ export function daysAwayLabel(days: number): string {
   if (days === 1) return 'You were away for a day.'
   return `${days} days since your last visit.`
 }
-
-// Kept for backward compat — prefer getWelcomeBackCopy(tone)
-export const WELCOME_BACK_BODY =
-  "Good to see you again. No catching up needed — let's just start with one thing today."
-export const WELCOME_BACK_CTA = 'Start with one win'
 
 // ── Reflection ────────────────────────────────────────────────────────────────
 

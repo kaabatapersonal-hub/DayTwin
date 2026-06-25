@@ -18,6 +18,28 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    // Equip-only items the user actually owns; free items (cost_sparks = 0) are always equippable.
+    // This prevents equipping items that were never unlocked via the shop.
+    const { data: owned } = await supabase
+      .from('user_unlocked_items')
+      .select('item_id')
+      .eq('user_id', user.id)
+      .eq('item_id', item_id)
+      .maybeSingle()
+
+    if (!owned) {
+      // Allow equipping free items even without an explicit unlock row
+      const { data: itemDef } = await supabase
+        .from('profile_items')
+        .select('cost_sparks')
+        .eq('id', item_id)
+        .maybeSingle()
+
+      if (!itemDef || itemDef.cost_sparks > 0) {
+        return NextResponse.json({ error: 'Item not owned' }, { status: 403 })
+      }
+    }
+
     // Fetch current equipped list
     const { data: settings } = await supabase
       .from('user_settings')

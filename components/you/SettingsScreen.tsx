@@ -471,8 +471,10 @@ function AppearanceSection() {
 function AccountSection({ isAnonymous, sparksBalance }: { isAnonymous: boolean; sparksBalance: number }) {
   const supabase  = createClient()
   const router    = useRouter()
-  const [confirm, setConfirm]   = useState(false)
-  const [signing, setSigning]   = useState(false)
+  const [confirm,       setConfirm]       = useState(false)
+  const [signing,       setSigning]       = useState(false)
+  const [deletePhase,   setDeletePhase]   = useState<'idle' | 'confirm' | 'deleting'>('idle')
+  const [deleteError,   setDeleteError]   = useState<string | null>(null)
   const [, startTransition] = useTransition()
 
   async function handleSignOut() {
@@ -480,6 +482,28 @@ function AccountSection({ isAnonymous, sparksBalance }: { isAnonymous: boolean; 
     setSigning(true)
     await supabase.auth.signOut()
     startTransition(() => { router.push('/today') })
+  }
+
+  async function handleDelete() {
+    if (deletePhase === 'idle')    { setDeletePhase('confirm');   return }
+    if (deletePhase === 'confirm') {
+      setDeletePhase('deleting')
+      setDeleteError(null)
+      try {
+        const res = await fetch('/api/users/delete', { method: 'POST' })
+        if (!res.ok) {
+          const body = await res.json() as { error?: string }
+          setDeleteError(body.error ?? 'Something went wrong.')
+          setDeletePhase('confirm')
+          return
+        }
+        // Session is now invalid — navigate to Today which starts a fresh anonymous session
+        startTransition(() => { router.push('/today') })
+      } catch {
+        setDeleteError('Something went wrong.')
+        setDeletePhase('confirm')
+      }
+    }
   }
 
   async function handleExport() {
@@ -555,6 +579,50 @@ function AccountSection({ isAnonymous, sparksBalance }: { isAnonymous: boolean; 
           )}
         </button>
       </Card>
+
+      {/* Delete account — separate card so it's visually distant from the rest */}
+      {!isAnonymous && (
+        <div className="mt-4 mx-4">
+          {deletePhase === 'idle' && (
+            <button
+              onClick={handleDelete}
+              className="w-full py-3 text-center text-xs font-body text-white/20 active:text-red-400/60 transition-colors"
+            >
+              Delete my account
+            </button>
+          )}
+
+          {(deletePhase === 'confirm' || deletePhase === 'deleting') && (
+            <div className="bg-red-950/40 border border-red-500/20 rounded-2xl px-4 py-4">
+              <p className="text-sm font-body font-semibold text-red-400 mb-1">
+                Delete account permanently?
+              </p>
+              <p className="text-xs font-body text-white/40 mb-4 leading-relaxed">
+                All your goals, habits, tasks, reflections, and Sparks will be deleted. This cannot be undone. Export your data first if you want a copy.
+              </p>
+              {deleteError && (
+                <p className="text-xs font-body text-red-400 mb-3">{deleteError}</p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setDeletePhase('idle'); setDeleteError(null) }}
+                  disabled={deletePhase === 'deleting'}
+                  className="flex-1 py-2.5 rounded-xl bg-white/[0.06] text-sm font-body text-white/60 disabled:opacity-40"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deletePhase === 'deleting'}
+                  className="flex-1 py-2.5 rounded-xl bg-red-500/80 text-sm font-body font-semibold text-white disabled:opacity-40"
+                >
+                  {deletePhase === 'deleting' ? 'Deleting…' : 'Yes, delete everything'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

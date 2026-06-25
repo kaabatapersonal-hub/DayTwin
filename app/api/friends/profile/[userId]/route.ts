@@ -26,6 +26,22 @@ export async function GET(
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    // Gate on accepted friendship before fetching any data.
+    // Checking friendships directly is reliable regardless of whether the friend
+    // has any recent scores (an inactive friend with 0 activity still passes).
+    if (userId !== user.id) {
+      const { data: friendship } = await supabase
+        .from('friendships')
+        .select('status')
+        .or(`and(requester_id.eq.${user.id},addressee_id.eq.${userId}),and(requester_id.eq.${userId},addressee_id.eq.${user.id})`)
+        .eq('status', 'accepted')
+        .maybeSingle()
+
+      if (!friendship) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+    }
+
     // Fetch public profile — RLS users_select_friends allows this for accepted friends
     const { data: profile, error: profileError } = await supabase
       .from('users')
@@ -37,12 +53,10 @@ export async function GET(
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Fetch 7-day score history via security-definer RPC (only returns score_pct, not breakdown)
+    // Fetch 7-day score history via security-definer RPC (returns score_pct only, not breakdown)
     const { data: scoreRows } = await supabase
       .rpc('get_friend_scores', { friend_user_id: userId })
 
-    // If scores are empty this user is not a friend — return 403
-    // (profile row is readable via the friendship policy, but scores gate the overlay)
     const scoreHistory = (scoreRows ?? []) as { score_date: string; score_pct: number }[]
 
     // Fetch aggregated consistency via security-definer RPC (no habit names exposed)
