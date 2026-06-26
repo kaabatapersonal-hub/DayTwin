@@ -34,11 +34,11 @@ body {
 }
 
 /* Prevent iOS Safari from zooming on input focus.
-   Safari auto-zooms when font-size < 16px; this overrides Tailwind's text-sm (14px). */
+   !important beats Tailwind's text-sm (14px) class which has higher specificity. */
 input,
 textarea,
 select {
-  font-size: 16px;
+  font-size: 16px !important;
 }
 
 /* Remove the 300ms tap delay on every element, not just interactive ones. */
