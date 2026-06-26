@@ -1,5 +1,7 @@
 import { cache }              from 'react'
 import { createClient }      from '@/lib/supabase/server'
+
+export const dynamic = 'force-dynamic'
 import { fetchActiveHabits } from '@/lib/habits'
 import { HabitsScreen }      from '@/components/habits/HabitsScreen'
 

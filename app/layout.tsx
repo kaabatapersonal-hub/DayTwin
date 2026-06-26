@@ -37,12 +37,15 @@ export const metadata: Metadata = {
   description: 'Your personal operating system',
   manifest:    '/manifest.json',
   appleWebApp: {
-    capable:       true,
     statusBarStyle: 'black-translucent',
     title:         'DayTwin',
   },
+  other: {
+    'mobile-web-app-capable': 'yes',
+  },
   icons: {
-    apple: '/icons/apple-touch-icon.png',
+    apple: '/icons/icon-192.svg',
+    icon:  '/icons/icon-192.svg',
   },
 }
 

@@ -1,5 +1,7 @@
 import { cache }                   from 'react'
 import { createClient }            from '@/lib/supabase/server'
+
+export const dynamic = 'force-dynamic'
 import { fetchGoals }              from '@/lib/goals'
 import { fetchProjects }           from '@/lib/projects'
 import { fetchAllReflections }     from '@/lib/reflections'

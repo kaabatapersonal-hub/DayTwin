@@ -31,7 +31,7 @@ export async function startEntry(
 ): Promise<TimeEntry> {
   const { data, error } = await supabase
     .from('time_entries')
-    .insert({ category, task_id: taskId })
+    .insert({ category, task_id: taskId, start_at: new Date().toISOString() })
     .select()
     .single()
 

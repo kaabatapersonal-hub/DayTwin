@@ -11,16 +11,17 @@ type FreqMode = 'daily' | 'custom'
 const DAY_ORDER: DayOfWeek[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
 interface HabitFormProps {
-  initialHabit?: Habit   // present when editing
+  initialHabit?: Habit
+  prefillName?:  string  // pre-fills name from a suggestion chip; ignored when editing
   onSubmit:  (data: HabitFormData) => Promise<void>
   onArchive?: () => Promise<void>
   onClose:   () => void
 }
 
-export function HabitForm({ initialHabit, onSubmit, onArchive, onClose }: HabitFormProps) {
+export function HabitForm({ initialHabit, prefillName, onSubmit, onArchive, onClose }: HabitFormProps) {
   const isEdit = Boolean(initialHabit)
 
-  const [name,        setName]        = useState(initialHabit?.name ?? '')
+  const [name,        setName]        = useState(initialHabit?.name ?? prefillName ?? '')
   const [type,        setType]        = useState<HabitType>(initialHabit?.type ?? 'boolean')
   const [targetRaw,   setTargetRaw]   = useState<string>(() => {
     if (!initialHabit?.target_value) return ''

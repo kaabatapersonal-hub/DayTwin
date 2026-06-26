@@ -15,8 +15,9 @@ export async function startFocusSession(
     .from('focus_sessions')
     .insert({
       planned_duration_seconds: plannedDurationSeconds,
-      task_id: taskId,
-      status:  'active',
+      task_id:     taskId,
+      status:      'active',
+      started_at:  new Date().toISOString(),
     })
     .select()
     .single()

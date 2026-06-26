@@ -1,5 +1,7 @@
 import { createClient }    from '@/lib/supabase/server'
 import { SettingsScreen }  from '@/components/you/SettingsScreen'
+
+export const dynamic = 'force-dynamic'
 import type { UserFullProfile, UserSettings } from '@/types'
 
 const DEFAULT_SETTINGS: Omit<UserSettings, 'user_id'> = {

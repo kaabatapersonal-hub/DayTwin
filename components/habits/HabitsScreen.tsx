@@ -21,12 +21,18 @@ interface HabitsScreenProps {
  */
 export function HabitsScreen({ initialHabits }: HabitsScreenProps) {
   const { habits, add, update, archive, error } = useHabits(initialHabits)
-  const [editTarget, setEditTarget] = useState<HabitWithStreak | null>(null)
-  const [showAdd,    setShowAdd]    = useState(false)
+  const [editTarget,  setEditTarget]  = useState<HabitWithStreak | null>(null)
+  const [showAdd,     setShowAdd]     = useState(false)
+  const [prefillName, setPrefillName] = useState<string | undefined>()
 
   async function handleAdd(data: HabitFormData) {
     await add(data)
     setShowAdd(false)
+  }
+
+  function handleSuggestion(name: string) {
+    setPrefillName(name)
+    setShowAdd(true)
   }
 
   async function handleUpdate(data: HabitFormData) {
@@ -41,7 +47,7 @@ export function HabitsScreen({ initialHabits }: HabitsScreenProps) {
     setEditTarget(null)
   }
 
-  const closeForm = () => { setShowAdd(false); setEditTarget(null) }
+  const closeForm = () => { setShowAdd(false); setEditTarget(null); setPrefillName(undefined) }
   const formOpen  = showAdd || Boolean(editTarget)
 
   return (
@@ -70,7 +76,7 @@ export function HabitsScreen({ initialHabits }: HabitsScreenProps) {
         )}
 
         {!habits.length ? (
-          <HabitsEmptyState onAdd={() => setShowAdd(true)} />
+          <HabitsEmptyState onAdd={() => setShowAdd(true)} onAddWithSuggestion={handleSuggestion} />
         ) : (
           <div className="space-y-3 mt-2">
             {habits.map(item => (
@@ -89,6 +95,7 @@ export function HabitsScreen({ initialHabits }: HabitsScreenProps) {
         {formOpen && (
           <HabitForm
             initialHabit={editTarget?.habit}
+            prefillName={editTarget ? undefined : prefillName}
             onSubmit={editTarget ? handleUpdate : handleAdd}
             onArchive={editTarget ? handleArchive : undefined}
             onClose={closeForm}

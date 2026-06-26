@@ -1,5 +1,7 @@
 import { createClient }        from '@/lib/supabase/server'
 import { fetchFriends }        from '@/lib/friends'
+
+export const dynamic = 'force-dynamic'
 import { fetchFriendRequests } from '@/lib/friends'
 import { FriendsScreen }       from '@/components/friends/FriendsScreen'
 

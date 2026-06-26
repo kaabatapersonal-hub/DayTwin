@@ -1,6 +1,8 @@
 import { cache }                   from 'react'
 import { redirect }               from 'next/navigation'
 import { createClient }           from '@/lib/supabase/server'
+
+export const dynamic = 'force-dynamic'
 import { fetchTodayTasks }        from '@/lib/tasks'
 import { fetchTodayIntention }    from '@/lib/intentions'
 import { fetchTodayHabits }       from '@/lib/habits'
