@@ -58,7 +58,7 @@ export function FriendsScreen({
   if (isAnonymous) {
     return (
       <div className="min-h-screen bg-background text-white flex flex-col">
-        <header className="pt-safe-top px-5 pb-4 bg-background">
+        <header className="page-header pt-safe-top px-5 pb-4 bg-background">
           <h1 className="font-heading text-2xl font-bold text-white">Friends</h1>
         </header>
         <AccountClaimPrompt />
@@ -68,7 +68,7 @@ export function FriendsScreen({
 
   return (
     <div className="min-h-screen bg-background text-white flex flex-col">
-      <header className="pt-safe-top px-5 pb-3 bg-background flex items-center justify-between">
+      <header className="page-header pt-safe-top px-5 pb-3 bg-background flex items-center justify-between">
         <div>
           <h1 className="font-heading text-2xl font-bold text-white">Friends</h1>
           {refreshing && (

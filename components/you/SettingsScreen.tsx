@@ -639,7 +639,7 @@ export function SettingsScreen({ profile, settings, sparksBalance }: SettingsScr
   return (
     <div className="min-h-screen bg-[#080808] pb-32">
       {/* Header */}
-      <div className="pt-safe-top px-5 pb-5">
+      <div className="page-header pt-safe-top px-5 pb-5">
         <h1 className="text-2xl font-heading font-bold text-white">You</h1>
       </div>
 

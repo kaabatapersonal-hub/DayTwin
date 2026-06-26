@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { useKeyboardOffset } from '@/hooks/useKeyboardOffset'
 import type { Project, ProjectStatus, NewProject, Goal } from '@/types'
 
 export type ProjectFormData = NewProject
@@ -31,6 +32,8 @@ export function ProjectForm({
   const [submitting, setSubmitting] = useState(false)
   const [archiving,  setArchiving]  = useState(false)
   const [formError,  setFormError]  = useState<string | null>(null)
+
+  const keyboardOffset = useKeyboardOffset()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -63,8 +66,8 @@ export function ProjectForm({
         onClick={onClose} className="fixed inset-0 bg-black/60 z-40" />
 
       <motion.div
-        initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+        initial={{ y: '100%' }} animate={{ y: -keyboardOffset }} exit={{ y: '100%' }}
+        transition={{ type: 'spring', damping: 36, stiffness: 400 }}
         className="fixed bottom-0 left-0 right-0 z-50 bg-[#141414] rounded-t-3xl px-5 pt-4 pb-safe-bottom"
       >
         <div className="w-10 h-1 rounded-full bg-white/15 mx-auto mb-5" />

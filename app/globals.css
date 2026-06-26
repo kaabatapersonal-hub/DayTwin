@@ -52,3 +52,25 @@ select {
 html[data-tracking-active="true"] .pt-safe-top {
   padding-top: calc(max(2rem, env(safe-area-inset-top)) + 36px);
 }
+
+/* Sticky page headers — keep the top bar visible as content scrolls.
+   z-30 sits below the TrackingBar (z-40) so it never covers the timer bar.
+   Background matches the theme so scrolling content doesn't bleed through. */
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: rgb(var(--color-bg));
+}
+
+/* When the TrackingBar is active, slide the sticky header down below it. */
+html[data-tracking-active="true"] .page-header {
+  top: 2.25rem; /* h-9 — TrackingBar height */
+}
+
+/* When a sticky page-header has pt-safe-top, suppress the extra 36 px offset:
+   the header's own top: 2.25rem already clears the TrackingBar. */
+html[data-tracking-active="true"] .page-header.pt-safe-top,
+html[data-tracking-active="true"] .page-header .pt-safe-top {
+  padding-top: max(2rem, env(safe-area-inset-top));
+}

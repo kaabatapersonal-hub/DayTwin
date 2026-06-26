@@ -6,6 +6,7 @@ import { CATEGORY_CONFIG, ALL_CATEGORIES } from '@/lib/categories'
 import { htmlTimeToPg, pgTimeToHtml } from '@/lib/format'
 import { createClient } from '@/lib/supabase/client'
 import { fetchProjects } from '@/lib/projects'
+import { useKeyboardOffset } from '@/hooks/useKeyboardOffset'
 import type { Task, TaskCategory, TaskPriority, Project } from '@/types'
 
 export type FormMode = 'add-time-block' | 'add-quick' | 'edit'
@@ -61,6 +62,8 @@ export function TaskForm({
   const [submitting, setSubmitting] = useState(false)
   const [deleting,   setDeleting]   = useState(false)
   const [formError,  setFormError]  = useState<string | null>(null)
+
+  const keyboardOffset = useKeyboardOffset()
 
   // Fetch active projects once so the selector is populated
   useEffect(() => {
@@ -122,12 +125,12 @@ export function TaskForm({
         className="fixed inset-0 bg-black/60 z-40"
       />
 
-      {/* Sheet */}
+      {/* Sheet — y offset lifts it above the keyboard on iOS */}
       <motion.div
         initial={{ y: '100%' }}
-        animate={{ y: 0 }}
+        animate={{ y: -keyboardOffset }}
         exit={{ y: '100%' }}
-        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+        transition={{ type: 'spring', damping: 36, stiffness: 400 }}
         className="fixed bottom-0 left-0 right-0 z-50 bg-[#141414] rounded-t-3xl px-5 pt-4 pb-safe-bottom"
       >
         {/* Drag handle (decorative) */}

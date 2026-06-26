@@ -121,7 +121,7 @@ export function GrowthScreen({
 
   return (
     <div className="min-h-screen bg-background text-white flex flex-col">
-      <header className="pt-safe-top px-5 pb-4 bg-background">
+      <header className="page-header pt-safe-top px-5 pb-4 bg-background">
         <h1 className="font-heading text-2xl font-bold text-white">Growth</h1>
         <p className="text-sm font-body text-white/40 mt-0.5">Your goals and progress</p>
       </header>

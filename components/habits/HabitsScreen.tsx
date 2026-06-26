@@ -53,7 +53,7 @@ export function HabitsScreen({ initialHabits }: HabitsScreenProps) {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Top bar */}
-      <div className="px-4 pt-safe-top pb-3 flex items-center justify-between">
+      <div className="page-header px-4 pt-safe-top pb-3 flex items-center justify-between">
         <span className="font-heading text-lg font-semibold text-white">Habits</span>
         <button
           onClick={() => setShowAdd(true)}
