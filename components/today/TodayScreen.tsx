@@ -16,7 +16,7 @@ import { ScoreRing }                    from './ScoreRing'
 import { HardDayOverlay }               from './HardDayOverlay'
 import { TaskForm, type FormMode, type TaskFormData } from './TaskForm'
 import { TodayHabits }                  from '@/components/habits/TodayHabits'
-import { TrackingSheet }                from '@/components/tracking/TrackingSheet'
+import { TrackingPage }                 from '@/components/tracking/TrackingPage'
 import { FocusSheet }                   from '@/components/focus/FocusSheet'
 import { FocusScreen }                  from '@/components/focus/FocusScreen'
 import { FocusComplete }                from '@/components/focus/FocusComplete'
@@ -95,7 +95,7 @@ export function TodayScreen({
 
   const [formState,        setFormState]        = useState<FormState | null>(null)
   const [showHardDay,      setShowHardDay]      = useState(false)
-  const [showTrackSheet,   setShowTrackSheet]   = useState(false)
+  const [showTimerPage,    setShowTimerPage]    = useState(false)
   const [showFocusSheet,   setShowFocusSheet]   = useState(false)
   const [focusSession,     setFocusSession]     = useState<FocusSession | null>(null)
   const [focusTaskTitle,   setFocusTaskTitle]   = useState<string | null>(null)
@@ -318,7 +318,7 @@ export function TodayScreen({
         <>
           {/* Tracking FAB — manual timer (stopwatch icon) */}
           <button
-            onClick={() => setShowTrackSheet(true)}
+            onClick={() => setShowTimerPage(true)}
             className="fixed bottom-40 right-5 w-12 h-12 rounded-full bg-teal/15 border border-teal/30 text-teal flex items-center justify-center shadow-lg active:scale-90 transition-transform z-20"
             aria-label="Start time tracking"
           >
@@ -347,10 +347,11 @@ export function TodayScreen({
         </>
       )}
 
-      {/* Bottom sheets */}
+      {/* Bottom sheets + full-page overlays with enter/exit animations */}
       <AnimatePresence>
         {formState && (
           <TaskForm
+            key="task-form"
             mode={formState.mode}
             date={date}
             initialTask={formState.task}
@@ -359,14 +360,16 @@ export function TodayScreen({
             onClose={() => setFormState(null)}
           />
         )}
-        {showTrackSheet && (
-          <TrackingSheet
+        {showTimerPage && (
+          <TrackingPage
+            key="timer-page"
             tasks={allTasks}
-            onClose={() => setShowTrackSheet(false)}
+            onClose={() => setShowTimerPage(false)}
           />
         )}
         {showFocusSheet && (
           <FocusSheet
+            key="focus-sheet"
             tasks={allTasks}
             onStart={handleFocusStart}
             onClose={() => setShowFocusSheet(false)}
