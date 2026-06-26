@@ -20,8 +20,10 @@
   font-family:  var(--font-inter), sans-serif;
   font-size:    16px;
   line-height:  1.6;
-  overflow-x:   hidden;
-  min-height:   100vh;
+  overflow-x:       hidden;
+  min-height:       100vh;
+  overflow-wrap:    break-word;
+  word-break:       break-word;
 }
 
 .landing h1,
@@ -144,7 +146,10 @@
   margin-top: 7px; flex-shrink: 0;
 }
 
-.growthText { font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
+.growthText {
+  font-size: 14px; color: var(--text-secondary); line-height: 1.5;
+  flex: 1; min-width: 0; word-break: break-word;
+}
 .growthText strong { color: var(--text); font-weight: 500; }
 
 /* ── CONTRAST SECTION ── */
@@ -173,16 +178,17 @@
 .contrastAfter .contrastLabel  { color: var(--teal); }
 
 .contrastItem {
-  display: flex; gap: 12px; align-items: center;
+  display: flex; gap: 12px; align-items: flex-start;
   padding: 12px 0; border-bottom: 0.5px solid var(--border);
-  font-size: 15px;
+  font-size: 15px; min-width: 0;
 }
 .contrastItem:last-child { border-bottom: none; }
 
 .contrastBefore .contrastItem { color: var(--text-tertiary); }
 .contrastAfter  .contrastItem { color: var(--text); }
 
-.contrastIcon { font-size: 16px; flex-shrink: 0; }
+.contrastIcon { font-size: 16px; flex-shrink: 0; margin-top: 2px; }
+.contrastItem span:last-child { flex: 1; min-width: 0; word-break: break-word; }
 
 /* ── SECTION SHARED ── */
 .section { padding: 100px 0; }
@@ -306,12 +312,20 @@
 
 .levelBar {
   background: var(--surface-2); border: 0.5px solid var(--border);
-  border-radius: 100px; padding: 12px 16px;
+  border-radius: 16px; padding: 12px 16px;
   display: flex; justify-content: space-between; align-items: center;
+  gap: 8px; min-width: 0;
 }
 
-.levelName { font-size: 13px; font-weight: 500; }
-.levelXp   { font-size: 12px; color: var(--text-tertiary); }
+.levelName {
+  font-size: 13px; font-weight: 500;
+  flex: 1; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.levelXp   { font-size: 12px; color: var(--text-tertiary); white-space: nowrap; flex-shrink: 0; }
+
+/* First child of levelBar (the name+bar wrapper div) stretches to fill */
+.levelBar > div { flex: 1; min-width: 0; }
 
 .levelProgress {
   height: 3px; background: rgba(217,166,83,0.15);
@@ -415,12 +429,65 @@
 @media (max-width: 768px) {
   .contrastGrid  { grid-template-columns: 1fr; }
   .sparksGrid    { grid-template-columns: 1fr; }
-  .friendsCards  { grid-template-columns: 1fr; }
-  .sparksInner   { padding: 36px 24px; }
-  .nav           { padding: 14px 20px; }
-  .hero          { padding: 100px 20px 60px; }
+  .friendsCards  { grid-template-columns: 1fr; gap: 10px; }
+  .sparksInner   { padding: 32px 20px; }
+  .nav           { padding: 14px 16px; }
+  .hero          { padding: 96px 20px 56px; }
   .section,
-  .sparksSection { padding: 72px 0; }
+  .sparksSection { padding: 64px 0; }
+  .quoteSection  { padding: 64px 20px; }
+  .ctaSection    { padding: 80px 20px; }
+  .contrastPanel { padding: 28px 20px; }
+  .sectionSub    { font-size: 15px; margin-bottom: 40px; }
+  .heroSub       { font-size: 16px; }
+  .sparksSub     { font-size: 15px; }
+
+  /* Friends: side-by-side on mid-size phones */
+  .friendsCards  { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ── Phone-sized screens (≤ 480px) ── */
+@media (max-width: 480px) {
+  .nav               { padding: 12px 16px; }
+  .navLogoText       { font-size: 16px; }
+  .hero              { padding: 88px 16px 48px; }
+  .hero h1           { font-size: 32px; }
+  .eyebrow           { font-size: 11px; padding: 5px 12px; }
+  .heroCtas          { flex-direction: column; align-items: center; gap: 10px; }
+  .heroCtas .btnLg   { width: 100%; max-width: 280px; justify-content: center; }
+  .growthWindow      { padding: 16px; }
+  .contrastPanel     { padding: 20px 16px; }
+  .contrastItem      { font-size: 14px; }
+  .section,
+  .sparksSection     { padding: 56px 0; }
+  .sectionTitle      { font-size: 26px; }
+  .sparksTitle       { font-size: 24px; }
+  .featuresGrid      { grid-template-columns: 1fr; }
+  .featureCard       { padding: 20px; }
+  .sparksList        { gap: 10px; }
+  .quoteText         { font-size: 22px; }
+  .ctaTitle          { font-size: 28px; }
+  .ctaSub            { font-size: 15px; }
+  .ctaSection .btnLg { width: 100%; max-width: 300px; justify-content: center; }
+  .sparksInner       { padding: 24px 16px; }
+  .sparksVisual      { gap: 8px; }
+
+  /* Friends: stacked on narrow phones */
+  .friendsCards      { grid-template-columns: 1fr; }
+  .friendCard        { display: flex; align-items: center; text-align: left; gap: 16px; }
+  .friendAvatar      { margin: 0; flex-shrink: 0; }
+  .friendName        { font-size: 14px; }
+  .friendScore       { font-size: 20px; margin: 2px 0; }
+  .challengeBadge    { margin-top: 4px; }
+
+  .footer            { flex-direction: column; align-items: flex-start; gap: 12px; }
+}
+
+/* ── Very narrow (≤ 360px) ── */
+@media (max-width: 360px) {
+  .hero h1    { font-size: 28px; }
+  .container  { padding: 0 16px; }
+  .nav        { padding: 12px 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
