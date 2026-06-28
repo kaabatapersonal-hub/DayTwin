@@ -56,7 +56,7 @@ export function HabitPactDetail({ data, myUserId }: HabitPactDetailProps) {
       .eq('habit_id', challenge.habit_id)
       .eq('user_id', myUserId)
       .gte('date', challenge.starts_at)
-      .then(({ data: rows }) => {
+      .then(({ data: rows }: { data: { user_id: string; date: string; completed: boolean }[] | null }) => {
         setMyLogs((rows ?? []).map(r => ({
           user_id:   r.user_id,
           date:      r.date,
