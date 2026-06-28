@@ -1,31 +1,28 @@
-const CACHE_NAME = 'daytwin-shell-v1'
-const SHELL_URLS = ['/today', '/habits', '/growth', '/friends', '/you']
+// Minimal service worker — makes the app installable as a PWA.
+//
+// The app routes (/today, /habits, etc.) all use force-dynamic and serve
+// user-specific data, so they must never be pre-cached. Pre-caching them
+// caused stale auth-scoped snapshots to appear after a service-worker update
+// (skipWaiting + clients.claim took over mid-session and briefly served the
+// old cached response, making users think their data was gone).
 
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(c => c.addAll(SHELL_URLS))
-      .then(() => self.skipWaiting())
-  )
+const CACHE_NAME = 'daytwin-shell-v2'
+
+self.addEventListener('install', () => {
+  // Skip the "waiting" phase so the new SW activates immediately after install.
+  self.skipWaiting()
 })
 
 self.addEventListener('activate', e => {
+  // Delete ALL old caches (including the v1 shell cache with the pre-cached
+  // force-dynamic pages that was causing the stale-data problem).
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-      ))
+      .then(keys => Promise.all(keys.map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   )
 })
 
-// Offline fallback for navigation requests only.
-// API routes, assets, and Next.js RSC payloads are never cached here.
-self.addEventListener('fetch', e => {
-  if (e.request.mode !== 'navigate') return
-  e.respondWith(
-    fetch(e.request).catch(() =>
-      caches.match(e.request).then(r => r ?? caches.match('/today'))
-    )
-  )
-})
+// No fetch handler — every request goes straight to the network.
+// This means the app won't work offline, which is the correct trade-off
+// for a realtime personal-data app where stale data is worse than no data.

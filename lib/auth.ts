@@ -4,13 +4,18 @@ import { createClient } from './supabase/client'
 
 // Silently creates an anonymous Supabase session on first app load.
 // No form, no screen — the user is immediately active.
+//
+// Uses getUser() (server round-trip) rather than getSession() (local storage only).
+// getSession() returns null if localStorage was cleared (iOS PWA reinstall,
+// storage pressure, etc.) even when a valid refresh-token cookie still exists.
+// getUser() asks the Supabase server to verify — only returns null when the
+// session is truly gone — preventing a new anonymous user from being created and
+// orphaning the existing user's data.
 export async function ensureAnonymousSession() {
   const supabase = createClient()
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) {
+  if (!user) {
     const { error } = await supabase.auth.signInAnonymously()
     if (error) console.error('[DayTwin] Anonymous sign-in failed:', error.message)
   }
