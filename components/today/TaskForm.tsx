@@ -63,7 +63,7 @@ export function TaskForm({
   const [deleting,   setDeleting]   = useState(false)
   const [formError,  setFormError]  = useState<string | null>(null)
 
-  const keyboardOffset = useKeyboardOffset()
+  const { bottom, maxHeight } = useKeyboardOffset()
 
   // Fetch active projects once so the selector is populated
   useEffect(() => {
@@ -128,10 +128,11 @@ export function TaskForm({
       {/* Sheet — y offset lifts it above the keyboard on iOS */}
       <motion.div
         initial={{ y: '100%' }}
-        animate={{ y: -keyboardOffset }}
+        animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 36, stiffness: 400 }}
-        className="fixed bottom-0 left-0 right-0 z-50 bg-[#141414] rounded-t-3xl px-5 pt-4 pb-safe-bottom"
+        className="fixed left-0 right-0 z-50 bg-[#141414] rounded-t-3xl px-5 pt-4 pb-safe-bottom overflow-y-auto"
+        style={{ bottom, maxHeight }}
       >
         {/* Drag handle (decorative) */}
         <div className="w-10 h-1 rounded-full bg-white/15 mx-auto mb-5" />

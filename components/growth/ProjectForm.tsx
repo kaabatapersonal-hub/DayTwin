@@ -33,7 +33,7 @@ export function ProjectForm({
   const [archiving,  setArchiving]  = useState(false)
   const [formError,  setFormError]  = useState<string | null>(null)
 
-  const keyboardOffset = useKeyboardOffset()
+  const { bottom, maxHeight } = useKeyboardOffset()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -66,9 +66,10 @@ export function ProjectForm({
         onClick={onClose} className="fixed inset-0 bg-black/60 z-40" />
 
       <motion.div
-        initial={{ y: '100%' }} animate={{ y: -keyboardOffset }} exit={{ y: '100%' }}
+        initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 36, stiffness: 400 }}
-        className="fixed bottom-0 left-0 right-0 z-50 bg-[#141414] rounded-t-3xl px-5 pt-4 pb-safe-bottom"
+        className="fixed left-0 right-0 z-50 bg-[#141414] rounded-t-3xl px-5 pt-4 pb-safe-bottom overflow-y-auto"
+        style={{ bottom, maxHeight }}
       >
         <div className="w-10 h-1 rounded-full bg-white/15 mx-auto mb-5" />
         <h2 className="font-heading text-base font-semibold text-white mb-5">

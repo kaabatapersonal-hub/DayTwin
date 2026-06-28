@@ -1,44 +1,57 @@
 'use client'
-
 import { useEffect, useState } from 'react'
 
 /**
- * Returns the current on-screen keyboard height in pixels.
- * Uses visualViewport.resize/scroll events — the only reliable way to detect
- * the software keyboard in iOS Safari PWA mode.
+ * Locks background scroll and returns positioning values for a bottom sheet
+ * that should sit above the iOS virtual keyboard.
  *
- * Also locks document.body overflow while the calling component is mounted,
- * preventing iOS from scrolling the background page while a bottom sheet is open.
- * Use in every bottom-sheet component that has focusable inputs.
+ * `bottom`    — CSS bottom value (px) anchoring the sheet above the keyboard.
+ * `maxHeight` — caps the sheet to the visual viewport minus a 2rem gap so the
+ *               sheet never overflows above the top of the screen.
+ *
+ * Uses position:fixed on body (more reliable than overflow:hidden on iOS Safari
+ * standalone PWA) and the visualViewport API to track keyboard height.
  */
-export function useKeyboardOffset(): number {
-  const [offset, setOffset] = useState(0)
+export function useKeyboardOffset(): { bottom: number; maxHeight: string } {
+  const [bottom,   setBottom]   = useState(0)
+  const [vvHeight, setVvHeight] = useState<number | null>(null)
 
   useEffect(() => {
-    // Lock body scroll for the lifetime of the calling sheet
-    const prevOverflow = document.body.style.overflow
+    const scrollY = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top      = `-${scrollY}px`
     document.body.style.overflow = 'hidden'
+    document.body.style.width    = '100%'
+
+    function restore() {
+      document.body.style.position = ''
+      document.body.style.top      = ''
+      document.body.style.overflow = ''
+      document.body.style.width    = ''
+      window.scrollTo(0, scrollY)
+    }
 
     const vv = window.visualViewport
-    if (!vv) {
-      return () => { document.body.style.overflow = prevOverflow }
-    }
+    if (!vv) return restore
 
-    const update = () => {
-      // keyboard height = gap between layout viewport bottom and visual viewport bottom
+    function update() {
       const kh = Math.max(0, window.innerHeight - vv.offsetTop - vv.height)
-      setOffset(kh)
+      setBottom(kh)
+      setVvHeight(vv.height)
     }
-
+    update()
     vv.addEventListener('resize', update)
     vv.addEventListener('scroll', update)
 
     return () => {
       vv.removeEventListener('resize', update)
       vv.removeEventListener('scroll', update)
-      document.body.style.overflow = prevOverflow
+      restore()
     }
   }, [])
 
-  return offset
+  return {
+    bottom,
+    maxHeight: vvHeight ? `${vvHeight - 32}px` : '85dvh',
+  }
 }
