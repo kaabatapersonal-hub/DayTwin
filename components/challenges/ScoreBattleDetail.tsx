@@ -41,7 +41,7 @@ export function ScoreBattleDetail({ initialData, myUserId }: ScoreBattleDetailPr
           table:  'challenge_participants',
           filter: `challenge_id=eq.${challenge.id}`,
         },
-        (payload) => {
+        (payload: { new: { id: string; current_score: number } }) => {
           setParticipants(prev =>
             prev.map(p =>
               p.id === payload.new.id

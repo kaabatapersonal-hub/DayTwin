@@ -28,8 +28,8 @@ export function SparksBadge({ initialBalance, userId }: SparksBadgeProps) {
           table:  'users',
           filter: `id=eq.${userId}`,
         },
-        (payload) => {
-          const nb = (payload.new as Record<string, unknown>).sparks_balance
+        (payload: { new: Record<string, unknown> }) => {
+          const nb = payload.new.sparks_balance
           if (typeof nb === 'number') setBalance(nb)
         },
       )
