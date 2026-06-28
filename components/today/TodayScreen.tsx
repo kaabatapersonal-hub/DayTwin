@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { AnimatePresence }              from 'framer-motion'
+import { AnimatePresence, motion }      from 'framer-motion'
 import { createClient }                 from '@/lib/supabase/client'
 import { startFocusSession }           from '@/lib/focus-sessions'
 import { TopBar }                       from './TopBar'
@@ -234,6 +234,12 @@ export function TodayScreen({
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* Ambient top glow — subtle teal radial behind the whole page */}
+      <div
+        className="pointer-events-none fixed inset-x-0 top-0 h-72 z-0"
+        style={{ background: 'radial-gradient(ellipse 90% 55% at 50% -5%, rgba(45,212,191,0.09) 0%, transparent 65%)' }}
+      />
+
       <TopBar
         date={date}
         scorePct={score}
@@ -242,7 +248,7 @@ export function TodayScreen({
         sparksBalance={initialSparksBalance}
       />
 
-      <div className="flex-1 flex flex-col px-4 pb-28">
+      <div className="relative z-10 flex-1 flex flex-col px-4 pb-56">
         <CoachCard data={coachData} tonePreference={tonePreference} />
         {motivationCard && <MotivationCard card={motivationCard} />}
         <MoodCheckIn moods={moods} onLog={handleMoodLog} />
@@ -270,7 +276,12 @@ export function TodayScreen({
             onAddQuick={() => openAdd('add-quick')}
           />
         ) : (
-          <div className="space-y-7 mt-2">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.08 }}
+            className="space-y-7 mt-2"
+          >
             {hasAnyTasks && (
               <>
                 <TimelineView
@@ -297,29 +308,39 @@ export function TodayScreen({
                 onStopTimer={handleHabitStop}
               />
             )}
-          </div>
+          </motion.div>
         )}
 
-        <div className="mt-8 flex justify-center">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.18 }}
+          className="mt-8 flex justify-center"
+        >
           <ScoreRing pct={score} size={88} tonePreference={tonePreference} />
-        </div>
+        </motion.div>
 
-        <div className="mt-6">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.22 }}
+          className="mt-6"
+        >
           <ReflectionCard
             reflection={reflection}
             onSubmit={handleReflectionSubmit}
             error={reflectionError}
           />
-        </div>
+        </motion.div>
       </div>
 
       {/* FABs — only shown when not in a focus session */}
       {!focusSession && (
         <>
-          {/* Tracking FAB — manual timer (stopwatch icon) */}
+          {/* Tracking FAB — manual timer */}
           <button
             onClick={() => setShowTimerPage(true)}
-            className="fixed bottom-40 right-5 w-12 h-12 rounded-full bg-teal/15 border border-teal/30 text-teal flex items-center justify-center shadow-lg active:scale-90 transition-transform z-20"
+            className="fixed bottom-[168px] right-5 w-12 h-12 rounded-full bg-teal/12 border border-teal/25 text-teal flex items-center justify-center shadow-lg shadow-black/30 active:scale-90 transition-transform z-20"
             aria-label="Start time tracking"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -333,10 +354,10 @@ export function TodayScreen({
             </svg>
           </button>
 
-          {/* Focus Session FAB — countdown mode (lightning icon) */}
+          {/* Focus Session FAB — countdown mode */}
           <button
             onClick={() => setShowFocusSheet(true)}
-            className="fixed bottom-24 right-5 w-14 h-14 rounded-full bg-gold text-background flex items-center justify-center shadow-lg active:scale-90 transition-transform z-20"
+            className="fixed bottom-[100px] right-5 w-14 h-14 rounded-full bg-gold text-background flex items-center justify-center shadow-xl shadow-gold/25 active:scale-90 transition-transform z-20"
             aria-label="Start focus session"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
