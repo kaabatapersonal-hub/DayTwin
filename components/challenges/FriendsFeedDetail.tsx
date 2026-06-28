@@ -45,7 +45,7 @@ export function FriendsFeedDetail({ data, myUserId, onEnded }: FriendsFeedDetail
       .select('user_id, date, score_pct')
       .in('user_id', userIds)
       .gte('date', sevenDaysAgo)
-      .then(({ data: rows }) => {
+      .then(({ data: rows }: { data: { user_id: string; date: string; score_pct: number }[] | null }) => {
         const map: Record<string, FriendScoreDay[]> = {}
         for (const uid of userIds) {
           map[uid] = (rows ?? [])
