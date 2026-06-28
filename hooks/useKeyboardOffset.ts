@@ -31,8 +31,10 @@ export function useKeyboardOffset(): { bottom: number; maxHeight: string } {
       window.scrollTo(0, scrollY)
     }
 
-    const vv = window.visualViewport
-    if (!vv) return restore
+    if (!window.visualViewport) return restore
+
+    // Assign to a typed const so TypeScript knows it's non-null inside closures.
+    const vv: VisualViewport = window.visualViewport
 
     function update() {
       const kh = Math.max(0, window.innerHeight - vv.offsetTop - vv.height)
