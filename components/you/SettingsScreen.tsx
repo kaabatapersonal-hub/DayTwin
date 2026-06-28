@@ -637,19 +637,20 @@ interface SettingsScreenProps {
 
 export function SettingsScreen({ profile, settings, sparksBalance }: SettingsScreenProps) {
   return (
-    <div className="min-h-screen bg-[#080808] pb-32">
-      {/* Header */}
+    <div className="h-screen bg-background flex flex-col">
       <div className="page-header pt-safe-top px-5 pb-5">
         <h1 className="text-2xl font-heading font-bold text-white">You</h1>
       </div>
 
-      {profile && <ProfileSection profile={profile} />}
-      {profile?.is_anonymous && <ClaimAccountCard />}
+      <div className="flex-1 overflow-y-auto overscroll-y-none pb-32">
+        {profile && <ProfileSection profile={profile} />}
+        {profile?.is_anonymous && <ClaimAccountCard />}
 
-      <ToneSection initial={profile?.tone_preference ?? 'warm'} />
-      <NotificationsSection initial={settings} />
-      <AppearanceSection />
-      <AccountSection isAnonymous={profile?.is_anonymous ?? true} sparksBalance={sparksBalance} />
+        <ToneSection initial={profile?.tone_preference ?? 'warm'} />
+        <NotificationsSection initial={settings} />
+        <AppearanceSection />
+        <AccountSection isAnonymous={profile?.is_anonymous ?? true} sparksBalance={sparksBalance} />
+      </div>
     </div>
   )
 }

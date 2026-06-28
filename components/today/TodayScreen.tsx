@@ -233,7 +233,7 @@ export function TodayScreen({
   const allTasks     = [...timeBlocked, ...quick]
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col">
       {/* Ambient top glow — subtle teal radial behind the whole page */}
       <div
         className="pointer-events-none fixed inset-x-0 top-0 h-72 z-0"
@@ -248,7 +248,7 @@ export function TodayScreen({
         sparksBalance={initialSparksBalance}
       />
 
-      <div className="relative z-10 flex-1 flex flex-col px-4 pb-56">
+      <div className="relative z-10 flex-1 overflow-y-auto overscroll-y-none flex flex-col px-4 pb-56">
         <CoachCard data={coachData} tonePreference={tonePreference} />
         {motivationCard && <MotivationCard card={motivationCard} />}
         <MoodCheckIn moods={moods} onLog={handleMoodLog} />

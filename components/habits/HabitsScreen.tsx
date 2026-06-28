@@ -51,7 +51,7 @@ export function HabitsScreen({ initialHabits }: HabitsScreenProps) {
   const formOpen  = showAdd || Boolean(editTarget)
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col">
       {/* Top bar */}
       <div className="page-header px-4 pt-safe-top pb-3 flex items-center justify-between">
         <span className="font-heading text-lg font-semibold text-white">Habits</span>
@@ -68,7 +68,7 @@ export function HabitsScreen({ initialHabits }: HabitsScreenProps) {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col px-4 pb-24">
+      <div className="flex-1 overflow-y-auto overscroll-y-none flex flex-col px-4 pb-24">
         {error && (
           <div className="mb-3 px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20">
             <p className="text-xs text-red-400 font-body">{error}</p>

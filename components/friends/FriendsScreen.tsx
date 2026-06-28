@@ -57,17 +57,19 @@ export function FriendsScreen({
 
   if (isAnonymous) {
     return (
-      <div className="min-h-screen bg-background text-white flex flex-col">
+      <div className="h-screen bg-background text-white flex flex-col">
         <header className="page-header pt-safe-top px-5 pb-4 bg-background">
           <h1 className="font-heading text-2xl font-bold text-white">Friends</h1>
         </header>
-        <AccountClaimPrompt />
+        <div className="flex-1 overflow-y-auto overscroll-y-none">
+          <AccountClaimPrompt />
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background text-white flex flex-col">
+    <div className="h-screen bg-background text-white flex flex-col">
       <header className="page-header pt-safe-top px-5 pb-3 bg-background flex items-center justify-between">
         <div>
           <h1 className="font-heading text-2xl font-bold text-white">Friends</h1>
@@ -105,7 +107,7 @@ export function FriendsScreen({
         </div>
       </header>
 
-      <main className="flex-1 pb-32">
+      <main className="flex-1 overflow-y-auto overscroll-y-none pb-32">
         {/* Challenges shortcut */}
         <Link
           href="/friends/challenges"
