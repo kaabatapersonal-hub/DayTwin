@@ -173,19 +173,18 @@ export async function refreshStreak(
 export async function fetchActiveHabits(
   supabase: SupabaseClient,
 ): Promise<HabitWithStreak[]> {
-  const { data: habits, error } = await supabase
-    .from('habits')
-    .select('*')
-    .eq('archived', false)
-    .order('created_at', { ascending: true })
+  // Fetch habits and all streaks in parallel — both are scoped to the current
+  // user by RLS, so fetching all streaks up front is safe and avoids a second
+  // round-trip after we have the habit IDs.
+  const [
+    { data: habits, error },
+    { data: streaks },
+  ] = await Promise.all([
+    supabase.from('habits').select('*').eq('archived', false).order('created_at', { ascending: true }),
+    supabase.from('habit_streaks').select('*'),
+  ])
 
   if (error || !habits?.length) return []
-
-  const ids = (habits as Habit[]).map(h => h.id)
-  const { data: streaks } = await supabase
-    .from('habit_streaks')
-    .select('*')
-    .in('habit_id', ids)
 
   const streakMap = new Map(
     ((streaks ?? []) as HabitStreak[]).map(s => [s.habit_id, s]),

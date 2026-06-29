@@ -83,7 +83,7 @@ export default async function GrowthPage() {
     <GrowthScreen
       initialGoals={goals}
       projectCountsByGoal={projectCountsByGoal}
-      reflections={reflections}
+      reflections={[...reflections].reverse()}
       weeklySummary={weeklySummary}
       initialReviews={reviews}
       initialBadges={badgesRaw}

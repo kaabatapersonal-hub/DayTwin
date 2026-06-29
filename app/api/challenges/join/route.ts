@@ -74,6 +74,17 @@ export async function POST(req: NextRequest) {
         // Already joined — idempotent
         return NextResponse.json({ challenge_id, already_joined: true })
       }
+      // Refund the entry Sparks that were already deducted — the join failed,
+      // so the user must get their Sparks back.
+      if (cost > 0) {
+        await supabase.rpc('award_sparks', {
+          p_user_id:   user.id,
+          p_amount:    cost,
+          p_reason:    'challenge_entry_refund',
+          p_item_type: 'challenge',
+          p_item_id:   challenge_id,
+        })
+      }
       return NextResponse.json({ error: 'Failed to join' }, { status: 500 })
     }
 

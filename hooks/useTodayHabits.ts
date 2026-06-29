@@ -88,7 +88,9 @@ export function useTodayHabits(initial: TodayHabit[]): UseTodayHabitsReturn {
     try {
       const saved = await upsertHabitLog(supabase, habitId, todayISO(), null, newDone)
       applyLog(habitId, saved)
-      await refreshStreak(supabase, item.habit, todayISO())
+      // Streak refresh is fire-and-forget — it updates the DB for the Habits tab
+      // to read, but the streak value shown on Today doesn't re-render from this.
+      refreshStreak(supabase, item.habit, todayISO()).catch(console.error)
     } catch (err) {
       // Roll back
       setHabits(prev => prev.map(h => h.habit.id === habitId ? item : h))
@@ -119,7 +121,7 @@ export function useTodayHabits(initial: TodayHabit[]): UseTodayHabitsReturn {
     try {
       const saved = await upsertHabitLog(supabase, habitId, todayISO(), newVal, done)
       applyLog(habitId, saved)
-      await refreshStreak(supabase, item.habit, todayISO())
+      refreshStreak(supabase, item.habit, todayISO()).catch(console.error)
     } catch (err) {
       setHabits(prevState => prevState.map(h => h.habit.id === habitId ? item : h))
       setError(err instanceof Error ? err.message : 'Failed to update habit')
@@ -154,7 +156,7 @@ export function useTodayHabits(initial: TodayHabit[]): UseTodayHabitsReturn {
     try {
       const saved = await upsertHabitLog(supabase, habitId, todayISO(), elapsed, done)
       applyLog(habitId, saved)
-      await refreshStreak(supabase, item.habit, todayISO())
+      refreshStreak(supabase, item.habit, todayISO()).catch(console.error)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save timer')
     }

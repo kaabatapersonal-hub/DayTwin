@@ -46,6 +46,14 @@ export async function POST(req: NextRequest) {
     if (type !== 'friends_feed' && !duration_days) {
       return NextResponse.json({ error: 'duration_days required for this type' }, { status: 400 })
     }
+    if (duration_days !== undefined && duration_days !== null &&
+        (!Number.isInteger(duration_days) || duration_days < 1 || duration_days > 365)) {
+      return NextResponse.json({ error: 'duration_days must be between 1 and 365' }, { status: 400 })
+    }
+    if (entry_cost_sparks !== undefined &&
+        (!Number.isInteger(entry_cost_sparks) || entry_cost_sparks < 0 || entry_cost_sparks > 10000)) {
+      return NextResponse.json({ error: 'entry_cost_sparks must be a whole number between 0 and 10000' }, { status: 400 })
+    }
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -148,7 +156,17 @@ export async function POST(req: NextRequest) {
       .insert({ challenge_id: challenge.id, user_id: user.id })
 
     if (participantError) {
-      // Roll back the challenge if participant insertion fails
+      // Refund any Sparks deducted before rolling back the challenge row.
+      // Without this, the creator would lose Sparks for a challenge that never existed.
+      if (cost > 0) {
+        await supabase.rpc('award_sparks', {
+          p_user_id:   user.id,
+          p_amount:    cost,
+          p_reason:    'challenge_entry_refund',
+          p_item_type: 'challenge',
+          p_item_id:   challenge.id,
+        })
+      }
       await supabase.from('challenges').delete().eq('id', challenge.id)
       return NextResponse.json({ error: 'Failed to join challenge' }, { status: 500 })
     }

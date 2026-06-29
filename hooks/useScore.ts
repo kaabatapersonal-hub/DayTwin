@@ -38,11 +38,13 @@ export function useScore(initialScore: number, date: string): UseScoreReturn {
     )
     setScore(newScore)
 
-    // Upsert is fire-and-forget here — a failed write doesn't break the UI
+    // Upsert is fire-and-forget — a failed write doesn't break the UI
+    // (score is computed locally from source data). Log failures so they
+    // show up in Vercel logs instead of vanishing silently.
     try {
       await upsertDailyScore(supabase, date, newScore, breakdown)
-    } catch {
-      // Silently swallow — the score is still shown correctly in the UI
+    } catch (err) {
+      console.error('[useScore] Failed to persist daily score:', err)
     }
   }, [supabase, date])
 

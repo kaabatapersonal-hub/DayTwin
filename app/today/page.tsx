@@ -7,7 +7,7 @@ import { fetchTodayTasks }        from '@/lib/tasks'
 import { fetchTodayIntention }    from '@/lib/intentions'
 import { fetchTodayHabits }       from '@/lib/habits'
 import { fetchUserProfile, isWelcomeBackDue, daysSinceLastActive } from '@/lib/users'
-import { fetchTodayScore }        from '@/lib/scores'
+import { computeScorePct }        from '@/lib/scores'
 import { fetchTodayReflection }   from '@/lib/reflections'
 import { fetchTodayMoods }        from '@/lib/mood'
 import { fetchCoachData }         from '@/lib/coach'
@@ -22,7 +22,6 @@ const getCachedProfile      = cache(fetchUserProfile)
 const getCachedTasks        = cache(fetchTodayTasks)
 const getCachedIntention    = cache(fetchTodayIntention)
 const getCachedHabits       = cache(fetchTodayHabits)
-const getCachedScore        = cache(fetchTodayScore)
 const getCachedReflection   = cache(fetchTodayReflection)
 const getCachedMoods        = cache(fetchTodayMoods)
 const getCachedFocusSession = cache(fetchActiveFocusSession)
@@ -63,16 +62,25 @@ export default async function TodayPage() {
 
   const tonePreference = (profile?.tone_preference ?? 'warm') as 'warm' | 'direct' | 'hype'
 
-  const [tasks, intention, todayHabits, todayScore, reflection, todayMoods, activeFocusSession] =
+  const [tasks, intention, todayHabits, reflection, todayMoods, activeFocusSession] =
     await Promise.all([
       getCachedTasks(supabase, date),
       getCachedIntention(supabase, date),
       getCachedHabits(supabase, date),
-      getCachedScore(supabase, date),
       getCachedReflection(supabase, date),
       getCachedMoods(supabase, date),
       getCachedFocusSession(supabase),  // restore focus session if app was reopened mid-session
     ])
+
+  // Derive the initial score directly from the freshly-fetched source data so
+  // the displayed ring is always in sync with what's in the DB — never stale
+  // from a daily_scores cache row written by a previous async upsert.
+  const { score: initialComputedScore } = computeScorePct(
+    tasks,
+    todayHabits,
+    reflection !== null,
+    todayMoods.length > 0,
+  )
 
   const coachData = await fetchCoachData(
     supabase, date, profile?.preferred_name ?? null, tasks,
@@ -122,7 +130,7 @@ export default async function TodayPage() {
       initialIntention={intention}
       initialTodayHabits={todayHabits}
       date={date}
-      initialScore={todayScore?.score_pct ?? 0}
+      initialScore={initialComputedScore}
       initialReflection={reflection}
       initialTodayMoods={todayMoods}
       coachData={coachData}
